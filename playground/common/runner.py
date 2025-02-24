@@ -26,7 +26,6 @@ class BaseRunner(ABC):
 
         Args:
             args (argparse.Namespace): Command line arguments.
-            logger (logging.Logger): Logger instance.
         """
         self.args = args
         self.output_dir = args.output_dir
@@ -34,6 +33,7 @@ class BaseRunner(ABC):
 
         self.env_config = None
         self.env = None
+        self.eval_env = None
         self.randomizer = None
         self.writer = SummaryWriter(log_dir=self.output_dir)
         self.action_size = None
@@ -78,7 +78,6 @@ class BaseRunner(ABC):
         )
 
     def train(self) -> None:
-        # ppo_training_params = dict(self.training_state.rl_config)
         self.ppo_params = locomotion_params.brax_ppo_config(
             "BerkeleyHumanoidJoystickFlatTerrain"
         )  # TODO
@@ -106,15 +105,3 @@ class BaseRunner(ABC):
             eval_env=self.eval_env,
             wrap_env_fn=wrapper.wrap_for_brax_training,
         )
-
-        # self.logger.info(
-        #     "Time to jit: %s",
-        #     self.training_state.times[1] - self.training_state.times[0],
-        # )
-        # self.logger.info(
-        #     "Time to train: %s",
-        #     self.training_state.times[-1] - self.training_state.times[1],
-        # )
-
-        # if self.args.save_model:
-        #     model.save_params(params, "params")
