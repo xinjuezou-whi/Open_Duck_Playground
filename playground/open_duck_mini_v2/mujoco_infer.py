@@ -7,7 +7,7 @@ import time
 import argparse
 
 from playground.common.onnx_infer import OnnxInfer
-from playground.common.poly_reference_motion import PolyReferenceMotion
+from playground.common.poly_reference_motion_numpy import PolyReferenceMotion
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-o", "--onnx_model_path", type=str, required=True)
@@ -55,9 +55,6 @@ init_pos = np.array(
     ]
 )
 
-# model = mujoco.MjModel.from_xml_path(
-#     "/home/antoine/MISC/mini_BDX/mini_bdx/robots/open_duck_mini_v2/scene_position.xml"
-# )
 model = mujoco.MjModel.from_xml_path(
     "playground/open_duck_mini_v2/xmls/scene_mjx_flat_terrain.xml"
 )
