@@ -101,7 +101,7 @@ class BaseRunner(ABC):
 
         _, params, _ = train_fn(
             environment=self.env,
-            # eval_env=self.eval_env,
+            eval_env=self.eval_env,
             wrap_env_fn=wrapper.wrap_for_brax_training,
         )
 

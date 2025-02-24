@@ -91,6 +91,7 @@ class OpenDuckMiniV2Runner(BaseRunner):
         super().__init__(args)
         self.env_config = joystick.default_config()
         self.env = joystick.Joystick(task=args.task)
+        self.eval_env = joystick.Joystick(task=args.task)
         self.randomizer = randomize.domain_randomize
 
     # TODO
