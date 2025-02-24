@@ -26,10 +26,10 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
     @jax.vmap
     def rand_dynamics(rng):
         # Floor friction: =U(0.4, 1.0).
-        rng, key = jax.random.split(rng)
-        geom_friction = model.geom_friction.at[FLOOR_GEOM_ID, 0].set(
-            jax.random.uniform(key, minval=0.4, maxval=1.0)
-        )
+        # rng, key = jax.random.split(rng)
+        # geom_friction = model.geom_friction.at[FLOOR_GEOM_ID, 0].set(
+        #     jax.random.uniform(key, minval=0.4, maxval=1.0)
+        # )
 
         # Scale static friction: *U(0.9, 1.1).
         rng, key = jax.random.split(rng)
@@ -77,7 +77,7 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
         actuator_biasprm = model.actuator_biasprm.at[:, 1].set(-current_kp * factor)
 
         return (
-            geom_friction,
+            # geom_friction,
             body_ipos,
             dof_frictionloss,
             dof_armature,
@@ -88,7 +88,7 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
         )
 
     (
-        friction,
+        # friction,
         body_ipos,
         frictionloss,
         armature,
@@ -101,7 +101,7 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
     in_axes = jax.tree_util.tree_map(lambda x: None, model)
     in_axes = in_axes.tree_replace(
         {
-            "geom_friction": 0,
+            # "geom_friction": 0,
             "body_ipos": 0,
             "dof_frictionloss": 0,
             "dof_armature": 0,
@@ -114,7 +114,7 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
 
     model = model.tree_replace(
         {
-            "geom_friction": friction,
+            # "geom_friction": friction,
             "body_ipos": body_ipos,
             "dof_frictionloss": frictionloss,
             "dof_armature": armature,
