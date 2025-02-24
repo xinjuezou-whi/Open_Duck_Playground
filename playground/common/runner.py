@@ -39,13 +39,14 @@ class BaseRunner(ABC):
         self.writer = SummaryWriter(log_dir=self.output_dir)
 
         # CACHE STUFF
-        jax.config.update("jax_compilation_cache_dir", "/tmp/jax_cache")
+        os.makedirs(".tmp", exist_ok=True)
+        jax.config.update("jax_compilation_cache_dir", ".tmp/jax_cache")
         jax.config.update("jax_persistent_cache_min_entry_size_bytes", -1)
         jax.config.update("jax_persistent_cache_min_compile_time_secs", 0)
         jax.config.update(
             "jax_persistent_cache_enable_xla_caches", "xla_gpu_per_fusion_autotune_cache_dir"
         )
-        os.environ["JAX_COMPILATION_CACHE_DIR"] = "/tmp/jax_cache"
+        os.environ["JAX_COMPILATION_CACHE_DIR"] = ".tmp/jax_cache"
 
     def progress_callback(self, num_steps: int, metrics: dict) -> None:
 
