@@ -12,6 +12,7 @@ from playground.common.poly_reference_motion import PolyReferenceMotion
 parser = argparse.ArgumentParser()
 parser.add_argument("-o", "--onnx_model_path", type=str, required=True)
 parser.add_argument("-k", action="store_true", default=False)
+parser.add_argument("--reference_data", type=str, default="playground/open_duck_mini_v2/data/polynomial_coefficients.pkl")
 args = parser.parse_args()
 
 NUM_DOFS = 10
@@ -31,7 +32,7 @@ dof_pos_scale = 1.0
 dof_vel_scale = 0.05
 action_scale = 0.5
 
-PRM = PolyReferenceMotion("playground/open_duck_mini_v2/data/polynomial_coefficients.pkl")
+PRM = PolyReferenceMotion(args.reference_data)
 
 init_pos = np.array(
     [
