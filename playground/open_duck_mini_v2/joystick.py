@@ -16,14 +16,12 @@
 """Joystick task for Open Duck Mini V2. (based on Berkeley Humanoid)"""
 
 from typing import Any, Dict, Optional, Union
-import json
 import jax
 import jax.numpy as jp
 from ml_collections import config_dict
 from mujoco import mjx
 from mujoco.mjx._src import math
 import numpy as np
-import os
 
 from mujoco_playground._src import gait
 from mujoco_playground._src import mjx_env

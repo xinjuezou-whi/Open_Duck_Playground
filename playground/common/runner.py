@@ -6,7 +6,6 @@ from pathlib import Path
 from abc import ABC
 import argparse
 import functools
-import logging
 from datetime import datetime
 from flax.training import orbax_utils
 from tensorboardX import SummaryWriter
@@ -23,7 +22,7 @@ from playground.common.export_onnx import export_onnx
 
 class BaseRunner(ABC):
     def __init__(self, args: argparse.Namespace) -> None:
-        """Initialize the ZBotRunner class.
+        """Initialize the Runner class.
 
         Args:
             args (argparse.Namespace): Command line arguments.
@@ -37,6 +36,8 @@ class BaseRunner(ABC):
         self.env = None
         self.randomizer = None
         self.writer = SummaryWriter(log_dir=self.output_dir)
+        self.action_size = None
+        self.obs_size = None
 
         # CACHE STUFF
         os.makedirs(".tmp", exist_ok=True)
@@ -71,9 +72,9 @@ class BaseRunner(ABC):
         orbax_checkpointer.save(path, params, force=True, save_args=save_args)
         export_onnx(
             params,
-            self.env.action_size,
+            self.action_size,
             self.ppo_params,
-            int(self.env.observation_size["state"][0]),  # may not work
+            self.obs_size,  # may not work
         )
 
     def train(self) -> None:
