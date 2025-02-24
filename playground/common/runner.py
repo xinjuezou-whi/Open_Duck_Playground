@@ -72,11 +72,13 @@ class BaseRunner(ABC):
         path = f"{self.output_dir}/{d}_{current_step}"
         print(f"Saving checkpoint (step: {current_step}): {path}")
         orbax_checkpointer.save(path, params, force=True, save_args=save_args)
+        onnx_export_path = f"{self.output_dir}/{d}_{current_step}.onnx"
         export_onnx(
             params,
             self.action_size,
             self.ppo_params,
             self.obs_size,  # may not work
+            output_path=onnx_export_path
         )
 
     def train(self) -> None:
