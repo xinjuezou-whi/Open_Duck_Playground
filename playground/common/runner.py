@@ -94,7 +94,7 @@ class BaseRunner(ABC):
             ppo.train,
             **self.ppo_training_params,
             network_factory=network_factory,
-            # randomization_fn=self.randomizer,
+            randomization_fn=self.randomizer,
             progress_fn=self.progress_callback,
             policy_params_fn=self.policy_params_fn,
         )
