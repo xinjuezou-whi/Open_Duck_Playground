@@ -2,7 +2,7 @@
 Defines a common runner between the different robots.
 Inspired from https://github.com/kscalelabs/mujoco_playground/blob/master/playground/common/runner.py
 """
-
+from pathlib import Path
 from abc import ABC
 import argparse
 import functools
@@ -31,6 +31,7 @@ class BaseRunner(ABC):
         """
         self.args = args
         self.output_dir = args.output_dir
+        self.output_dir = Path.cwd() / Path(self.output_dir)
 
         self.env_config = None
         self.env = None
