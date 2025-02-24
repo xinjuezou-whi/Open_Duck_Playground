@@ -26,7 +26,7 @@ import numpy as np
 from mujoco_playground._src import mjx_env
 from mujoco_playground._src.collision import geoms_colliding
 
-from . import open_duck_mini_v2_constants as consts
+from . import constants
 from . import base as open_duck_mini_v2_base
 from playground.common.poly_reference_motion import PolyReferenceMotion
 from playground.common.rewards import (
@@ -106,7 +106,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         config_overrides: Optional[Dict[str, Union[str, int, list[Any]]]] = None,
     ):
         super().__init__(
-            xml_path=consts.task_to_xml(task).as_posix(),
+            xml_path=constants.task_to_xml(task).as_posix(),
             config=config,
             config_overrides=config_overrides,
         )
@@ -170,20 +170,20 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
         self._njoints = 10
 
-        self._torso_body_id = self._mj_model.body(consts.ROOT_BODY).id
+        self._torso_body_id = self._mj_model.body(constants.ROOT_BODY).id
         self._torso_mass = self._mj_model.body_subtreemass[self._torso_body_id]
         self._site_id = self._mj_model.site("imu").id
 
         self._feet_site_id = np.array(
-            [self._mj_model.site(name).id for name in consts.FEET_SITES]
+            [self._mj_model.site(name).id for name in constants.FEET_SITES]
         )
         self._floor_geom_id = self._mj_model.geom("floor").id
         self._feet_geom_id = np.array(
-            [self._mj_model.geom(name).id for name in consts.FEET_GEOMS]
+            [self._mj_model.geom(name).id for name in constants.FEET_GEOMS]
         )
 
         foot_linvel_sensor_adr = []
-        for site in consts.FEET_SITES:
+        for site in constants.FEET_SITES:
             sensor_id = self._mj_model.sensor(f"{site}_global_linvel").id
             sensor_adr = self._mj_model.sensor_adr[sensor_id]
             sensor_dim = self._mj_model.sensor_dim[sensor_id]

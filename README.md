@@ -38,6 +38,48 @@ Infer mujoco
 uv run playground/open_duck_mini_v2/mujoco_infer.py -o <path_to_.onnx> (-k)
 ```
 
+# Documentation
+
+## Project structure : 
+
+```
+.
+├── pyproject.toml
+├── README.md
+├── playground
+│   ├── common
+│   │   ├── export_onnx.py
+│   │   ├── onnx_infer.py
+│   │   ├── poly_reference_motion.py
+│   │   ├── randomize.py
+│   │   ├── rewards.py
+│   │   └── runner.py
+│   ├── open_duck_mini_v2
+│   │   ├── base.py
+│   │   ├── data
+│   │   │   └── polynomial_coefficients.pkl
+│   │   ├── joystick.py
+│   │   ├── mujoco_infer.py
+│   │   ├── constants.py
+│   │   ├── runner.py
+│   │   └── xmls
+│   │       ├── assets
+│   │       ├── open_duck_mini_v2_no_head.xml
+│   │       ├── open_duck_mini_v2.xml
+│   │       ├── scene_mjx_flat_terrain.xml
+│   │       ├── scene_mjx_rough_terrain.xml
+│   │       └── scene.xml
+```
+
+## Adding a new robot
+
+Create a new directory in `playground` named after `<your robot>`. You can copy the `open_duck_mini_v2` directory as a starting point.
+
+You will need to:
+- edit `base.py`
+
+
+
 # Notes
 
 Inspired from https://github.com/kscalelabs/mujoco_playground

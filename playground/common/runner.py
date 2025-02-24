@@ -2,6 +2,7 @@
 Defines a common runner between the different robots.
 Inspired from https://github.com/kscalelabs/mujoco_playground/blob/master/playground/common/runner.py
 """
+
 from pathlib import Path
 from abc import ABC
 import argparse
@@ -45,7 +46,8 @@ class BaseRunner(ABC):
         jax.config.update("jax_persistent_cache_min_entry_size_bytes", -1)
         jax.config.update("jax_persistent_cache_min_compile_time_secs", 0)
         jax.config.update(
-            "jax_persistent_cache_enable_xla_caches", "xla_gpu_per_fusion_autotune_cache_dir"
+            "jax_persistent_cache_enable_xla_caches",
+            "xla_gpu_per_fusion_autotune_cache_dir",
         )
         os.environ["JAX_COMPILATION_CACHE_DIR"] = ".tmp/jax_cache"
 

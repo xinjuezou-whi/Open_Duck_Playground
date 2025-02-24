@@ -6,7 +6,7 @@ from playground.common import randomize
 from playground.common.runner import BaseRunner
 from playground.open_duck_mini_v2 import (
     joystick,
-    open_duck_mini_v2_constants as constants,
+    constants
 )
 
 
