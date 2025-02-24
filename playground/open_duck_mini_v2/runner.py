@@ -9,6 +9,11 @@ from playground.open_duck_mini_v2 import (
     open_duck_mini_v2_constants as constants,
 )
 from ml_collections import config_dict
+from typing import Any, Callable, Dict, Optional, Tuple, Union
+
+import jax
+import ml_collections
+from mujoco import mjx
 
 
 def default_config() -> config_dict.ConfigDict:
@@ -91,7 +96,9 @@ class OpenDuckMiniV2Runner(BaseRunner):
         super().__init__(args)
         self.env_config = joystick.default_config()
         self.env = joystick.Joystick(task=args.task)
-        self.randomizer = randomize.domain_randomize
+        self.randomizer: Callable[
+            [mjx.Model, jax.Array], Tuple[mjx.Model, mjx.Model]
+        ] = randomize.domain_randomize
 
     # TODO
     @classmethod
@@ -108,7 +115,9 @@ def main() -> None:
         help="Where to save the checkpoints",
     )
     parser.add_argument("--task", type=str, default="flat_terrain", help="Task to run")
-    parser.add_argument("--debug", action="store_true", help="Run in debug mode with minimal parameters")
+    parser.add_argument(
+        "--debug", action="store_true", help="Run in debug mode with minimal parameters"
+    )
     # parser.add_argument("--save-model", action="store_true", help="Save model after training")
     # parser.add_argument("--load-model", action="store_true", help="Load existing model instead of training")
     # parser.add_argument("--seed", type=int, default=1, help="Random seed")
