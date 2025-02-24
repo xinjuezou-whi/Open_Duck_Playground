@@ -13,6 +13,7 @@ from playground.open_duck_mini_v2 import (
 class OpenDuckMiniV2Runner(BaseRunner):
 
     def __init__(self, args):
+        # TODO select the env depending on the task etc
         super().__init__(args)
         self.env_config = joystick.default_config()
         self.env = joystick.Joystick(task=args.task)
@@ -20,11 +21,6 @@ class OpenDuckMiniV2Runner(BaseRunner):
         self.randomizer = randomize.domain_randomize
         self.action_size = self.env.action_size
         self.obs_size = int(self.env.observation_size["state"][0])
-
-    # TODO
-    @classmethod
-    def get_root_body(cls) -> str:
-        return constants.ROOT_BODY
 
 
 def main() -> None:

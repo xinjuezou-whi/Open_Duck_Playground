@@ -76,7 +76,10 @@ uv run playground/open_duck_mini_v2/mujoco_infer.py -o <path_to_.onnx> (-k)
 Create a new directory in `playground` named after `<your robot>`. You can copy the `open_duck_mini_v2` directory as a starting point.
 
 You will need to:
-- edit `base.py`
+- Edit `base.py`: Mainly renaming stuff to match you robot's name
+- Edit `constants.py`: specify the names of some important geoms, sensors etc
+  - In your `mjcf`, you'll probably have to add some sites, name some bodies/geoms and add the sensors. Look at how we did it for `open_duck_mini_v2`
+- 
 
 
 
