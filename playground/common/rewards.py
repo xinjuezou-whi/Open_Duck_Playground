@@ -1,5 +1,6 @@
 """
 Set of commonly used rewards
+For examples on how to use some rewards, look at https://github.com/google-deepmind/mujoco_playground/blob/main/mujoco_playground/_src/locomotion/berkeley_humanoid/joystick.py
 """
 
 import jax
@@ -99,7 +100,6 @@ def cost_stand_still(
     pose_cost = jp.sum(jp.abs(qpos - default_pose))
     vel_cost = jp.sum(jp.abs(qvel))
     return jp.nan_to_num(pose_cost + vel_cost) * (cmd_norm < 0.01)
-    
 
 
 def cost_termination(done: jax.Array) -> jax.Array:

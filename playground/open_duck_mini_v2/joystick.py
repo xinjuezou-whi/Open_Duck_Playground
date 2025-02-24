@@ -23,7 +23,6 @@ from mujoco import mjx
 from mujoco.mjx._src import math
 import numpy as np
 
-from mujoco_playground._src import gait
 from mujoco_playground._src import mjx_env
 from mujoco_playground._src.collision import geoms_colliding
 
@@ -62,14 +61,13 @@ def default_config() -> config_dict.ConfigDict:
             imu_min_delay=0,  # env steps
             imu_max_delay=3,  # env steps
             scales=config_dict.create(
-                hip_pos=0.03,  # rad #for each hip joint
-                kfe_pos=0.05,  # kfe=Knee Pitch
-                ffe_pos=0.08,  # ffe=Ankle pitch
-                # faa_pos=0.03, #ffa=Ankle Roll #FIXME!
+                hip_pos=0.03,  # rad, for each hip joint
+                knee_pos=0.05,  # rad, for each knee joint
+                ankle_pos=0.08,  # rad, for each ankle joint
                 joint_vel=2.5,  # rad/s # Was 1.5
                 gravity=0.1,
                 linvel=0.1,
-                gyro=0.2,  # angvel. # was 0.2
+                gyro=0.2,  # angvel
             ),
         ),
         reward_config=config_dict.create(
@@ -151,25 +149,26 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         knee_indices = []
         for side in ["left", "right"]:
             knee_indices.append(self._mj_model.joint(f"{side}_knee").qposadr - 7)
-        # print(f"KNEE INDICES: {knee_indices}")
         self._knee_indices = jp.array(knee_indices)
-        # weights for computing the cost of each joints compared to a reference pose
-        # fmt: off
-        # self._weights = jp.array([
-        #     1.0, 1.0, 0.01, 0.01, 1.0, 1.0,  # left leg.
-        #     1.0, 1.0, 0.01, 0.01, 1.0, 1.0,  # right leg.
-        # ])
-        self._weights = jp.array([
-            1.0, 1.0, 0.01, 0.01, 1.0,   # left leg.
-        # 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, #head
-            1.0, 1.0, 0.01, 0.01, 1.0,  # right leg.
-        ])
 
-        # fmt: on
-        # self._joint_names=["left_hip_yaw","left_hip_roll","left_hip_pitch","left_knee","left_ankle", "right_hip_yaw","right_hip_roll","right_hip_pitch","right_knee","right_ankle"]
+        # weights for computing the cost of each joints compared to a reference pose
+        self._weights = jp.array(
+            [
+                1.0,
+                1.0,
+                0.01,
+                0.01,
+                1.0,  # left leg.
+                # 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, #head
+                1.0,
+                1.0,
+                0.01,
+                0.01,
+                1.0,  # right leg.
+            ]
+        )
+
         self._njoints = 10
-        # self ._joint_range=
-        # self._mj_model.joint()
 
         self._torso_body_id = self._mj_model.body(consts.ROOT_BODY).id
         self._torso_mass = self._mj_model.body_subtreemass[self._torso_body_id]
@@ -197,14 +196,15 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         qpos_noise_scale = np.zeros(self._njoints)
 
         # horrible
+        # TODO do better
         hip_ids = [0, 1, 2, 5, 6, 7]  # left/right hip_yaw/roll/pitch
-        kfe_ids = [3, 8]  # left/right knee
-        ffe_ids = [4, 9]  # left/right ankle pitch
+        knee_ids = [3, 8]  # left/right knee
+        ankle_ids = [4, 9]  # left/right ankle pitch
         # faa_ids = [5, 11] #left_right ankle roll
 
         qpos_noise_scale[hip_ids] = self._config.noise_config.scales.hip_pos
-        qpos_noise_scale[kfe_ids] = self._config.noise_config.scales.kfe_pos
-        qpos_noise_scale[ffe_ids] = self._config.noise_config.scales.ffe_pos
+        qpos_noise_scale[knee_ids] = self._config.noise_config.scales.knee_pos
+        qpos_noise_scale[ankle_ids] = self._config.noise_config.scales.ankle_pos
         # qpos_noise_scale[faa_ids] = self._config.noise_config.scales.faa_pos
         self._qpos_noise_scale = jp.array(qpos_noise_scale)
 
@@ -238,17 +238,6 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
         data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=qpos[7:])
 
-        # Phase, freq=U(0.5, 2.5)
-        # rng, key = jax.random.split(rng)
-        # gait_freq = jax.random.uniform(key, (1,), minval=1.9, maxval=2.1)
-        # gait_freq = 1 / self.period
-        # phase_dt = 2 * jp.pi * self.dt * gait_freq
-        # phase = jp.array([0, jp.pi])
-
-        base_y_swing_freq = 1.5  # hz
-        base_y_swing_amplitude = 0.06  # 6 centimeters
-        base_t = 0.0
-
         rng, cmd_rng = jax.random.split(rng)
         cmd = self.sample_command(cmd_rng)
 
@@ -279,12 +268,6 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             "feet_air_time": jp.zeros(2),
             "last_contact": jp.zeros(2, dtype=bool),
             "swing_peak": jp.zeros(2),
-            "base_y_swing_freq": base_y_swing_freq,
-            "base_y_swing_amplitude": base_y_swing_amplitude,
-            "base_t": base_t,
-            # Phase related.
-            # "phase_dt": phase_dt,
-            # "phase": phase,
             # Push related.
             "push": jp.array([0.0, 0.0]),
             "push_step": 0,
@@ -375,8 +358,6 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         data = state.data.replace(qvel=qvel)
         state = state.replace(data=data)
 
-        state.info["base_t"] += self.dt
-
         motor_targets = self._default_pose + action_w_delay * self._config.action_scale
         data = mjx_env.step(self.mjx_model, state.data, motor_targets, self.n_substeps)
         state.info["motor_targets"] = motor_targets
@@ -408,8 +389,6 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         state.info["push"] = push
         state.info["step"] += 1
         state.info["push_step"] += 1
-        # phase_tp1 = state.info["phase"] + state.info["phase_dt"]
-        # state.info["phase"] = jp.fmod(phase_tp1 + jp.pi, 2 * jp.pi) - jp.pi
         state.info["last_last_last_act"] = state.info["last_last_act"]
         state.info["last_last_act"] = state.info["last_act"]
         state.info["last_act"] = action
@@ -448,13 +427,13 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         self, data: mjx.Data, info: dict[str, Any], contact: jax.Array
     ) -> mjx_env.Observation:
         gyro = self.get_gyro(data)
-        info["rng"], noise_rng = jax.random.split(info["rng"])
-        noisy_gyro = (
-            gyro
-            + (2 * jax.random.uniform(noise_rng, shape=gyro.shape) - 1)
-            * self._config.noise_config.level
-            * self._config.noise_config.scales.gyro
-        )
+        # info["rng"], noise_rng = jax.random.split(info["rng"])
+        # noisy_gyro = (
+        #     gyro
+        #     + (2 * jax.random.uniform(noise_rng, shape=gyro.shape) - 1)
+        #     * self._config.noise_config.level
+        #     * self._config.noise_config.scales.gyro
+        # )
 
         gravity = data.site_xmat[self._site_id].T @ jp.array([0, 0, -1])
         info["rng"], noise_rng = jax.random.split(info["rng"])
@@ -494,19 +473,14 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             * self._config.noise_config.scales.joint_vel
         )
 
-        # cos = jp.cos(info["phase"])
-        # sin = jp.sin(info["phase"])
-        # phase = jp.concatenate([cos, sin]) # [4]
-        # phase = cos
-
         linvel = self.get_local_linvel(data)
-        info["rng"], noise_rng = jax.random.split(info["rng"])
-        noisy_linvel = (
-            linvel
-            + (2 * jax.random.uniform(noise_rng, shape=linvel.shape) - 1)
-            * self._config.noise_config.level
-            * self._config.noise_config.scales.linvel
-        )
+        # info["rng"], noise_rng = jax.random.split(info["rng"])
+        # noisy_linvel = (
+        #     linvel
+        #     + (2 * jax.random.uniform(noise_rng, shape=linvel.shape) - 1)
+        #     * self._config.noise_config.level
+        #     * self._config.noise_config.scales.linvel
+        # )
 
         state = jp.hstack(
             [
@@ -544,7 +518,6 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 contact,  # 2
                 feet_vel,  # 4*3
                 info["feet_air_time"],  # 2
-                # info["imitation_i"],
                 info["current_reference_motion"],
             ]
         )
