@@ -18,6 +18,7 @@ from mujoco_playground.config import locomotion_params
 from orbax import checkpoint as ocp
 import jax
 
+from playground.common import randomize
 from playground.common.export_onnx import export_onnx
 
 
@@ -94,7 +95,8 @@ class BaseRunner(ABC):
             ppo.train,
             **self.ppo_training_params,
             network_factory=network_factory,
-            randomization_fn=self.randomizer,
+            # randomization_fn=self.randomizer,
+            randomization_fn=randomize.domain_randomize
             progress_fn=self.progress_callback,
             policy_params_fn=self.policy_params_fn,
         )
