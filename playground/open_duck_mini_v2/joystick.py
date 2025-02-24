@@ -570,12 +570,12 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             "tracking_lin_vel": reward_tracking_lin_vel(
                 info["command"],
                 self.get_local_linvel(data),
-                self.config.reward_config.tracking_sigma,
+                self._config.reward_config.tracking_sigma,
             ),
             "tracking_ang_vel": reward_tracking_ang_vel(
                 info["command"],
                 self.get_gyro(data),
-                self.config.reward_config.tracking_sigma,
+                self._config.reward_config.tracking_sigma,
             ),
             "orientation": cost_orientation(self.get_gravity(data)),
             "torques": cost_torques(data.actuator_force),
