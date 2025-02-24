@@ -9,11 +9,6 @@ from playground.open_duck_mini_v2 import (
     open_duck_mini_v2_constants as constants,
 )
 from ml_collections import config_dict
-from typing import Any, Callable, Dict, Optional, Tuple, Union
-
-import jax
-import ml_collections
-from mujoco import mjx
 
 
 def default_config() -> config_dict.ConfigDict:
@@ -96,9 +91,7 @@ class OpenDuckMiniV2Runner(BaseRunner):
         super().__init__(args)
         self.env_config = joystick.default_config()
         self.env = joystick.Joystick(task=args.task)
-        self.randomizer: Callable[
-            [mjx.Model, jax.Array], Tuple[mjx.Model, mjx.Model]
-        ] = randomize.domain_randomize
+        self.randomizer = randomize.domain_randomize
 
     # TODO
     @classmethod
