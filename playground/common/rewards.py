@@ -116,8 +116,8 @@ def cost_termination(done: jax.Array) -> jax.Array:
 
 def reward_imitation(
         base_qvel: jax.Array,
-    qpos: jax.Array,
-    qvel: jax.Array,
+    joints_qpos: jax.Array,
+    joints_qvel: jax.Array,
     contacts: jax.Array,
     reference_frame: jax.Array,
     cmd: jax.Array,
@@ -184,12 +184,12 @@ def reward_imitation(
     ref_joint_pos = reference_frame[joint_pos_slice_start:joint_pos_slice_end]
     # remove the neck and head
     ref_joint_pos = jp.concatenate([ref_joint_pos[:5], ref_joint_pos[11:]])
-    joint_pos = qpos
+    joint_pos = joints_qpos
 
     ref_joint_vels = reference_frame[joint_vels_slice_start:joint_vels_slice_end]
     # remove the neck and head
     ref_joint_vels = jp.concatenate([ref_joint_vels[:5], ref_joint_vels[11:]])
-    joint_vel = qvel
+    joint_vel = joints_qvel
 
     # ref_left_toe_pos = reference_frame[left_toe_pos_slice_start:left_toe_pos_slice_end]
     # ref_right_toe_pos = reference_frame[right_toe_pos_slice_start:right_toe_pos_slice_end]
