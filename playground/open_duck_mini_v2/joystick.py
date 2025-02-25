@@ -221,8 +221,9 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         #     qpos[7:] * jax.random.uniform(key, (self._njoints,), minval=0.5, maxval=1.5)
         # )
         #multiply actual joints with noise (excluding floating base and backlash)
+
         qpos_j= qpos[~np.isin(range(len(qpos)),np.arange(self._floating_base_add,self._floating_base_add+7))]
-        qpos.at[~np.isin(range(len(qpos)),np.arange(self._floating_base_add,self._floating_base_add+7))].set(qpos_j * jax.random.uniform(key, (self._njoints,), minval=0.5, maxval=1.5))
+        qpos=qpos.at[~np.isin(range(len(qpos)),np.arange(self._floating_base_add,self._floating_base_add+7))].set(qpos_j * jax.random.uniform(key, (self._njoints,), minval=0.5, maxval=1.5))
 
         # init joint vel
         # d(xyzrpy)=U(-0.05, 0.05)
