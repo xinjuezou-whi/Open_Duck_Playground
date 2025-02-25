@@ -133,10 +133,10 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         self._soft_uppers = c + 0.5 * r * self._config.soft_joint_pos_limit_factor
 
         # get the indices of the hip joints
-        self._hip_indices = jp.array([self._mj_model.jnt_qposadr[idx] for idx in constants.HIP_JOINT_NAMES])
+        #self._hip_indices = jp.array([self._mj_model.jnt_qposadr[idx] for idx in constants.HIP_JOINT_NAMES])
 
         # get the indices of the knee joints
-        self._knee_indices = jp.array([self._mj_model.jnt_qposadr[idx] for idx in constants.KNEE_JOINT_NAMES])
+        #self._knee_indices = jp.array([self._mj_model.jnt_qposadr[idx] for idx in constants.KNEE_JOINT_NAMES])
 
 
         # weights for computing the cost of each joints compared to a reference pose
