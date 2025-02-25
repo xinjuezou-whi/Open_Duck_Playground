@@ -113,8 +113,11 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         self._post_init()
 
     def _post_init(self) -> None:
-        self._init_q = jp.array(self._mj_model.keyframe("home").qpos)
-        self._default_pose = jp.array(self._mj_model.keyframe("home").qpos[7:])
+        self._init_q = jp.array(self._mj_model.keyframe("home").qpos) #complete pose of the robot
+        # self._default_pose = jp.array(self._mj_model.keyframe("home").qpos[7:]) #pose of all the joints (no floating base)
+        self._default_pose = jp.array(self.get_all_joints_qpos(self._mj_model.keyframe("home"))) #pose of all the joints (no floating base)
+        self._default_actuator = self._mj_model.keyframe("home").ctrl  #ctrl of all the actual joints (no floating base and no backlash)
+
 
         if USE_IMITATION_REWARD:
             self.PRM = PolyReferenceMotion(
@@ -130,26 +133,11 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         self._soft_uppers = c + 0.5 * r * self._config.soft_joint_pos_limit_factor
 
         # get the indices of the hip joints
-        hip_indices = []
-        hip_joint_names = [
-            "hip_yaw",
-            "hip_roll",
-            "hip_pitch",
-        ]  # original implementaion seems to omit hip_pitch
-        for side in ["left", "right"]:
-            for joint_name in hip_joint_names:
-                hip_indices.append(
-                    self._mj_model.joint(f"{side}_{joint_name}").qposadr
-                    - 7  # -7 is to remove the 7 first corresponding to the floating base
-                )
-            # print(f"HIP INDICES: {hip_indices}")
-        self._hip_indices = jp.array(hip_indices)
+        self._hip_indices = jp.array([self._mj_model.jnt_qposadr[idx] for idx in constants.HIP_JOINT_NAMES])
 
         # get the indices of the knee joints
-        knee_indices = []
-        for side in ["left", "right"]:
-            knee_indices.append(self._mj_model.joint(f"{side}_knee").qposadr - 7)
-        self._knee_indices = jp.array(knee_indices)
+        self._knee_indices = jp.array([self._mj_model.jnt_qposadr[idx] for idx in constants.KNEE_JOINT_NAMES])
+
 
         # weights for computing the cost of each joints compared to a reference pose
         self._weights = jp.array(
@@ -168,7 +156,9 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             ]
         )
 
-        self._njoints = 10
+        self._njoints = self._mj_model.nu #number of actuators
+
+        self._floating_base_add = self._mj_model.jnt_dofadr[np.where(self._mj_model.jnt_type == 0)] #Assuming there is only one floating base! the jnt_type==0 is a floating joint. 3 is a hinge
 
         self._torso_body_id = self._mj_model.body(constants.ROOT_BODY).id
         self._torso_mass = self._mj_model.body_subtreemass[self._torso_body_id]
@@ -195,12 +185,10 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # noise in the simu?
         qpos_noise_scale = np.zeros(self._njoints)
 
-        # horrible
-        # TODO do better
-        hip_ids = [0, 1, 2, 5, 6, 7]  # left/right hip_yaw/roll/pitch
-        knee_ids = [3, 8]  # left/right knee
-        ankle_ids = [4, 9]  # left/right ankle pitch
-        # faa_ids = [5, 11] #left_right ankle roll
+
+        hip_ids = [idx for idx, j in enumerate(constants.JOINTS_ORDER_NO_HEAD) if '_hip' in j]
+        knee_ids = [idx for idx, j in enumerate(constants.JOINTS_ORDER_NO_HEAD) if '_knee' in j]
+        ankle_ids = [idx for idx, j in enumerate(constants.JOINTS_ORDER_NO_HEAD) if '_ankle' in j]
 
         qpos_noise_scale[hip_ids] = self._config.noise_config.scales.hip_pos
         qpos_noise_scale[knee_ids] = self._config.noise_config.scales.knee_pos
@@ -217,26 +205,31 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # x=+U(-0.05, 0.05), y=+U(-0.05, 0.05), yaw=U(-3.14, 3.14).
         rng, key = jax.random.split(rng)
         dxy = jax.random.uniform(key, (2,), minval=-0.05, maxval=0.05)
-        qpos = qpos.at[0:2].set(qpos[0:2] + dxy)
+        qpos = qpos.at[self._floating_base_add:self._floating_base_add+2].set(qpos[self._floating_base_add:self._floating_base_add+2] + dxy)
         rng, key = jax.random.split(rng)
         yaw = jax.random.uniform(key, (1,), minval=-3.14, maxval=3.14)
         quat = math.axis_angle_to_quat(jp.array([0, 0, 1]), yaw)
-        new_quat = math.quat_mul(qpos[3:7], quat)
-        qpos = qpos.at[3:7].set(new_quat)
+        new_quat = math.quat_mul(qpos[self._floating_base_add+3:self._floating_base_add+7], quat)
+        qpos = qpos.at[self._floating_base_add+3:self._floating_base_add+7].set(new_quat)
 
-        # init joint position
+        # init joint position #FIXME
         # qpos[7:]=*U(0.0, 0.1)
         rng, key = jax.random.split(rng)
-        qpos = qpos.at[7:].set(
-            qpos[7:] * jax.random.uniform(key, (self._njoints,), minval=0.5, maxval=1.5)
-        )
+
+        # qpos = qpos.at[7:].set(
+        #     qpos[7:] * jax.random.uniform(key, (self._njoints,), minval=0.5, maxval=1.5)
+        # )
+        #multiply actual joints with noise (excluding floating base and backlash)
+        qpos_j= qpos.at[~np.isin(range(len(qpos)),np.arange(self._floating_base_add,self._floating_base_add+7))]
+        qpos.at[~np.isin(range(len(qpos)),np.arange(self._floating_base_add,self._floating_base_add+7))].set(qpos_j * jax.random.uniform(key, (self._njoints,), minval=0.5, maxval=1.5))
 
         # init joint vel
         # d(xyzrpy)=U(-0.05, 0.05)
         rng, key = jax.random.split(rng)
-        qvel = qvel.at[0:6].set(jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5))
+        qvel = qvel.at[self._floating_base_add:self._floating_base_add+6].set(jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5))
 
-        data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=qpos[7:])
+        #FIXME
+        data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=qpos.at[~np.isin(range(len(qpos)),np.arange(self._floating_base_add,self._floating_base_add+7))])
 
         rng, cmd_rng = jax.random.split(rng)
         cmd = self.sample_command(cmd_rng)
@@ -354,11 +347,11 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         )
         push *= self._config.push_config.enable
         qvel = state.data.qvel
-        qvel = qvel.at[:2].set(push * push_magnitude + qvel[:2])
+        qvel = qvel.at[:self._floating_base_add+2].set(push * push_magnitude + qvel[:self._floating_base_add+2]) #floating base x,y
         data = state.data.replace(qvel=qvel)
         state = state.replace(data=data)
 
-        motor_targets = self._default_pose + action_w_delay * self._config.action_scale
+        motor_targets = self._default_actuator + action_w_delay * self._config.action_scale
         data = mjx_env.step(self.mjx_model, state.data, motor_targets, self.n_substeps)
         state.info["motor_targets"] = motor_targets
 
@@ -381,6 +374,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         rewards = self._get_reward(
             data, action, state.info, state.metrics, done, first_contact, contact
         )
+        #FIXME
         rewards = {
             k: v * self._config.reward_config.scales[k] for k, v in rewards.items()
         }
@@ -455,7 +449,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         )
         noisy_gravity = imu_history.reshape((-1, 3))[imu_idx[0]]
 
-        joint_angles = data.qpos[7:]
+        # joint_angles = data.qpos[7:]
+        joint_angles = self.get_actual_joints_qpos(data)
         info["rng"], noise_rng = jax.random.split(info["rng"])
         noisy_joint_angles = (
             joint_angles
@@ -464,7 +459,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             * self._qpos_noise_scale
         )
 
-        joint_vel = data.qvel[6:]
+        # joint_vel = data.qvel[6:]
+        joint_vel = self.get_actual_joints_qpvel(data)
         info["rng"], noise_rng = jax.random.split(info["rng"])
         noisy_joint_vel = (
             joint_vel
@@ -488,7 +484,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 # noisy_gyro,  # 3
                 noisy_gravity,  # 3
                 info["command"],  # 3
-                noisy_joint_angles - self._default_pose,  # 10
+                noisy_joint_angles - self._default_actuator,  # 10
                 noisy_joint_vel * self._config.dof_vel_scale,  # 10
                 info["last_act"],  # 10
                 info["last_last_act"],  # 10
@@ -501,7 +497,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         accelerometer = self.get_accelerometer(data)
         global_angvel = self.get_global_angvel(data)
         feet_vel = data.sensordata[self._foot_linvel_sensor_adr].ravel()
-        root_height = data.qpos[2]
+        root_height = data.qpos[self._floating_base_add+2]
 
         privileged_state = jp.hstack(
             [
@@ -511,7 +507,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 gravity,  # 3
                 linvel,  # 3
                 global_angvel,  # 3
-                joint_angles - self._default_pose,
+                joint_angles - self._default_actuator,
                 joint_vel,
                 root_height,  # 1
                 data.actuator_force,  # 10
@@ -554,16 +550,20 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             "torques": cost_torques(data.actuator_force),
             "action_rate": cost_action_rate(action, info["last_act"]),
             "alive": reward_alive(),
-            "imitation": reward_imitation(
-                data.qpos,
-                data.qvel,
+            "imitation": reward_imitation( #FIXME, this reward is so adhoc...
+                # data.qpos,
+                # data.qvel,
+                data.qvel[self._floating_base_add:self._floating_base_add+6], #floating base qvel
+                self.get_actual_joints_qpvel(data),
+                self.get_actual_joints_qpvel(data),
                 contact,
                 info["current_reference_motion"],
                 info["command"],
                 USE_IMITATION_REWARD,
             ),
             "stand_still": cost_stand_still(
-                info["command"], data.qpos[7:], data.qvel[6:], self._default_pose
+                # info["command"], data.qpos[7:], data.qvel[6:], self._default_pose
+                info["command"], self.get_actual_joints_qpos(data), self.get_actual_joints_qpvel(data), self._default_actuator
             ),
         }
 
