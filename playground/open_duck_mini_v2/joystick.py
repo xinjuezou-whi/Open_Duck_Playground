@@ -205,11 +205,11 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # x=+U(-0.05, 0.05), y=+U(-0.05, 0.05), yaw=U(-3.14, 3.14).
         rng, key = jax.random.split(rng)
         dxy = jax.random.uniform(key, (2,), minval=-0.05, maxval=0.05)
-        qpos = qpos.at[self._floating_base_add:self._floating_base_add+2].set(qpos[self._floating_base_add:self._floating_base_add+2] + dxy)
+        qpos = qpos.at[self._floating_base_add:self._floating_base_add+2].set(qpos.at[self._floating_base_add:self._floating_base_add+2] + dxy)
         rng, key = jax.random.split(rng)
         yaw = jax.random.uniform(key, (1,), minval=-3.14, maxval=3.14)
         quat = math.axis_angle_to_quat(jp.array([0, 0, 1]), yaw)
-        new_quat = math.quat_mul(qpos[self._floating_base_add+3:self._floating_base_add+7], quat)
+        new_quat = math.quat_mul(qpos.at[self._floating_base_add+3:self._floating_base_add+7], quat)
         qpos = qpos.at[self._floating_base_add+3:self._floating_base_add+7].set(new_quat)
 
         # init joint position #FIXME
