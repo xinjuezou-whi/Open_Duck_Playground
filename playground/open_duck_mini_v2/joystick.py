@@ -158,7 +158,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
         self._njoints = self._mj_model.nu #number of actuators
 
-        self._floating_base_add = self._mj_model.jnt_dofadr[np.where(self._mj_model.jnt_type == 0)] #Assuming there is only one floating base! the jnt_type==0 is a floating joint. 3 is a hinge
+        self._floating_base_add = self._mj_model.jnt_dofadr[np.where(self._mj_model.jnt_type == 0)][0] #Assuming there is only one floating base! the jnt_type==0 is a floating joint. 3 is a hinge
 
         self._torso_body_id = self._mj_model.body(constants.ROOT_BODY).id
         self._torso_mass = self._mj_model.body_subtreemass[self._torso_body_id]
@@ -205,7 +205,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # x=+U(-0.05, 0.05), y=+U(-0.05, 0.05), yaw=U(-3.14, 3.14).
         rng, key = jax.random.split(rng)
         dxy = jax.random.uniform(key, (2,), minval=-0.05, maxval=0.05)
-        print(f"DEBUG: {self._floating_base_add} {qpos[self._floating_base_add:self._floating_base_add+2]}")
+
         qpos = qpos.at[self._floating_base_add:self._floating_base_add+2].set(qpos[self._floating_base_add:self._floating_base_add+2] + dxy)
         rng, key = jax.random.split(rng)
         yaw = jax.random.uniform(key, (1,), minval=-3.14, maxval=3.14)
@@ -230,8 +230,10 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         qvel = qvel.at[self._floating_base_add:self._floating_base_add+6].set(jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5))
 
         #FIXME
-        data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=qpos.at[~np.isin(range(len(qpos)),np.arange(self._floating_base_add,self._floating_base_add+7))])
 
+        # data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=qpos[~np.isin(range(len(qpos)),np.arange(self._floating_base_add,self._floating_base_add+7))])
+        ctrl=qpos[~np.isin(range(len(qpos)),np.arange(self._floating_base_add,self._floating_base_add+7))]
+        data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=ctrl)
         rng, cmd_rng = jax.random.split(rng)
         cmd = self.sample_command(cmd_rng)
 
