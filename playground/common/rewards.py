@@ -115,8 +115,9 @@ def cost_termination(done: jax.Array) -> jax.Array:
 
 
 def reward_imitation(
-    qpos: jax.Array,
-    qvel: jax.Array,
+    base_qvel: jax.Array,
+    joints_qpos: jax.Array,
+    joints_qvel: jax.Array,
     contacts: jax.Array,
     reference_frame: jax.Array,
     cmd: jax.Array,
@@ -175,20 +176,20 @@ def reward_imitation(
     # base_orientation = base_orientation / jp.linalg.norm(base_orientation)  # normalize the quat
 
     ref_base_lin_vel = reference_frame[linear_vel_slice_start:linear_vel_slice_end]
-    base_lin_vel = qvel[:3]
+    base_lin_vel = base_qvel[:3]
 
     ref_base_ang_vel = reference_frame[angular_vel_slice_start:angular_vel_slice_end]
-    base_ang_vel = qvel[3:6]
+    base_ang_vel = base_qvel[3:6]
 
     ref_joint_pos = reference_frame[joint_pos_slice_start:joint_pos_slice_end]
     # remove the neck and head
     ref_joint_pos = jp.concatenate([ref_joint_pos[:5], ref_joint_pos[11:]])
-    joint_pos = qpos[7:]
+    joint_pos = joints_qpos
 
     ref_joint_vels = reference_frame[joint_vels_slice_start:joint_vels_slice_end]
     # remove the neck and head
     ref_joint_vels = jp.concatenate([ref_joint_vels[:5], ref_joint_vels[11:]])
-    joint_vel = qvel[6:]
+    joint_vel = joints_qvel
 
     # ref_left_toe_pos = reference_frame[left_toe_pos_slice_start:left_toe_pos_slice_end]
     # ref_right_toe_pos = reference_frame[right_toe_pos_slice_start:right_toe_pos_slice_end]
@@ -254,6 +255,7 @@ def reward_alive() -> jax.Array:
 # Pose-related rewards.
 
 
+# FIXME
 def cost_joint_deviation_hip(
     qpos: jax.Array, cmd: jax.Array, hip_indices: jax.Array, default_pose: jax.Array
 ) -> jax.Array:
@@ -262,6 +264,7 @@ def cost_joint_deviation_hip(
     return jp.nan_to_num(cost)
 
 
+# FIXME
 def cost_joint_deviation_knee(
     qpos: jax.Array, knee_indices: jax.Array, default_pose: jax.Array
 ) -> jax.Array:
@@ -270,6 +273,7 @@ def cost_joint_deviation_knee(
     )
 
 
+# FIXME
 def cost_pose(
     qpos: jax.Array, default_pose: jax.Array, weights: jax.Array
 ) -> jax.Array:
@@ -279,12 +283,14 @@ def cost_pose(
 # Feet related rewards.
 
 
+# FIXME
 def cost_feet_slip(contact: jax.Array, global_linvel: jax.Array) -> jax.Array:
     body_vel = global_linvel[:2]
     reward = jp.sum(jp.linalg.norm(body_vel, axis=-1) * contact)
     return jp.nan_to_num(reward)
 
 
+# FIXME
 def cost_feet_clearance(
     feet_vel: jax.Array,
     foot_pos: jax.Array,
@@ -299,6 +305,7 @@ def cost_feet_clearance(
     return jp.nan_to_num(jp.sum(delta * vel_norm))
 
 
+# FIXME
 def cost_feet_height(
     swing_peak: jax.Array,
     first_contact: jax.Array,
@@ -308,6 +315,7 @@ def cost_feet_height(
     return jp.nan_to_num(jp.sum(jp.square(error) * first_contact))
 
 
+# FIXME
 def reward_feet_air_time(
     air_time: jax.Array,
     first_contact: jax.Array,
@@ -323,6 +331,7 @@ def reward_feet_air_time(
     return jp.nan_to_num(reward)
 
 
+# FIXME
 def reward_feet_phase(
     foot_pos: jax.Array,
     rz: jax.Array,

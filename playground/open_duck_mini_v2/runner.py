@@ -17,7 +17,10 @@ class OpenDuckMiniV2Runner(BaseRunner):
         self.eval_env = joystick.Joystick(task=args.task)
         self.randomizer = randomize.domain_randomize
         self.action_size = self.env.action_size
-        self.obs_size = int(self.env.observation_size["state"][0])
+        self.obs_size = int(
+            self.env.observation_size["state"][0]
+        )  # 0: state 1: privileged_state
+        print(f"Observation size: {self.obs_size}")
 
 
 def main() -> None:
