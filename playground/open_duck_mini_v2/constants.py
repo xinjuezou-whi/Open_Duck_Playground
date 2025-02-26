@@ -19,19 +19,15 @@ from etils import epath
 
 
 ROOT_PATH = epath.Path(__file__).parent
-FEET_ONLY_FLAT_TERRAIN_XML = (
-    ROOT_PATH / "xmls" / "scene_mjx_flat_terrain.xml"
-)
-FEET_ONLY_ROUGH_TERRAIN_XML = (
-    ROOT_PATH / "xmls" / "scene_mjx_rough_terrain.xml"
-)
+FEET_ONLY_FLAT_TERRAIN_XML = ROOT_PATH / "xmls" / "scene_mjx_flat_terrain.xml"
+FEET_ONLY_ROUGH_TERRAIN_XML = ROOT_PATH / "xmls" / "scene_mjx_rough_terrain.xml"
 
 
 def task_to_xml(task_name: str) -> epath.Path:
-  return {
-      "flat_terrain": FEET_ONLY_FLAT_TERRAIN_XML,
-      "rough_terrain": FEET_ONLY_ROUGH_TERRAIN_XML,
-  }[task_name]
+    return {
+        "flat_terrain": FEET_ONLY_FLAT_TERRAIN_XML,
+        "rough_terrain": FEET_ONLY_ROUGH_TERRAIN_XML,
+    }[task_name]
 
 
 FEET_SITES = [
@@ -48,31 +44,31 @@ RIGHT_FEET_GEOMS = [
 ]
 
 HIP_JOINT_NAMES = [
-  "left_hip_yaw",
-  "left_hip_roll",
-  "left_hip_pitch",
-  "right_hip_yaw",
-  "right_hip_roll",
-  "right_hip_pitch",
+    "left_hip_yaw",
+    "left_hip_roll",
+    "left_hip_pitch",
+    "right_hip_yaw",
+    "right_hip_roll",
+    "right_hip_pitch",
 ]
 
 KNEE_JOINT_NAMES = [
-  "left_knee",
-  "right_knee",
+    "left_knee",
+    "right_knee",
 ]
 
-#There should be a way to get that from the mjModel...
+# There should be a way to get that from the mjModel...
 JOINTS_ORDER_NO_HEAD = [
-  "left_hip_yaw",
-  "left_hip_roll",
-  "left_hip_pitch",
-  "left_knee",
-  "left_ankle",
-  "right_hip_yaw",
-  "right_hip_roll",
-  "right_hip_pitch",
-  "right_knee",
-  "right_ankle",
+    "left_hip_yaw",
+    "left_hip_roll",
+    "left_hip_pitch",
+    "left_knee",
+    "left_ankle",
+    "right_hip_yaw",
+    "right_hip_roll",
+    "right_hip_pitch",
+    "right_knee",
+    "right_ankle",
 ]
 
 FEET_GEOMS = LEFT_FEET_GEOMS + RIGHT_FEET_GEOMS

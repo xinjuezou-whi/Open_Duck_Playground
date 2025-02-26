@@ -115,7 +115,7 @@ def cost_termination(done: jax.Array) -> jax.Array:
 
 
 def reward_imitation(
-        base_qvel: jax.Array,
+    base_qvel: jax.Array,
     joints_qpos: jax.Array,
     joints_qvel: jax.Array,
     contacts: jax.Array,
@@ -254,7 +254,8 @@ def reward_alive() -> jax.Array:
 
 # Pose-related rewards.
 
-#FIXME
+
+# FIXME
 def cost_joint_deviation_hip(
     qpos: jax.Array, cmd: jax.Array, hip_indices: jax.Array, default_pose: jax.Array
 ) -> jax.Array:
@@ -262,7 +263,8 @@ def cost_joint_deviation_hip(
     cost *= jp.abs(cmd[1]) > 0.1
     return jp.nan_to_num(cost)
 
-#FIXME
+
+# FIXME
 def cost_joint_deviation_knee(
     qpos: jax.Array, knee_indices: jax.Array, default_pose: jax.Array
 ) -> jax.Array:
@@ -270,7 +272,8 @@ def cost_joint_deviation_knee(
         jp.sum(jp.abs(qpos[knee_indices] - default_pose[knee_indices]))
     )
 
-#FIXME
+
+# FIXME
 def cost_pose(
     qpos: jax.Array, default_pose: jax.Array, weights: jax.Array
 ) -> jax.Array:
@@ -279,13 +282,15 @@ def cost_pose(
 
 # Feet related rewards.
 
-#FIXME
+
+# FIXME
 def cost_feet_slip(contact: jax.Array, global_linvel: jax.Array) -> jax.Array:
     body_vel = global_linvel[:2]
     reward = jp.sum(jp.linalg.norm(body_vel, axis=-1) * contact)
     return jp.nan_to_num(reward)
 
-#FIXME
+
+# FIXME
 def cost_feet_clearance(
     feet_vel: jax.Array,
     foot_pos: jax.Array,
@@ -299,7 +304,8 @@ def cost_feet_clearance(
     delta = jp.abs(foot_z - max_foot_height)
     return jp.nan_to_num(jp.sum(delta * vel_norm))
 
-#FIXME
+
+# FIXME
 def cost_feet_height(
     swing_peak: jax.Array,
     first_contact: jax.Array,
@@ -308,7 +314,8 @@ def cost_feet_height(
     error = swing_peak / max_foot_height - 1.0
     return jp.nan_to_num(jp.sum(jp.square(error) * first_contact))
 
-#FIXME
+
+# FIXME
 def reward_feet_air_time(
     air_time: jax.Array,
     first_contact: jax.Array,
@@ -323,7 +330,8 @@ def reward_feet_air_time(
     reward *= cmd_norm > 0.01  # No reward for zero commands.
     return jp.nan_to_num(reward)
 
-#FIXME
+
+# FIXME
 def reward_feet_phase(
     foot_pos: jax.Array,
     rz: jax.Array,
