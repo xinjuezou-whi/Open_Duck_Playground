@@ -114,8 +114,10 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
     def _post_init(self) -> None:
         self._init_q = jp.array(
-            self._mj_model.keyframe("home").qpos
-        )  # complete pose of the robot
+            self.get_joints_nobacklash_qpos(self._mj_model.keyframe("home"))
+        )  # complete pose of the robot (without backlash joints)
+        # self._init_q=self._mj_model.keyframe("home").qpos
+
         # self._default_pose = jp.array(self._mj_model.keyframe("home").qpos[7:]) #pose of all the joints (no floating base)
         self._default_pose = jp.array(
             self.get_all_joints_qpos(self._mj_model.keyframe("home"))
@@ -161,12 +163,6 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         )
 
         self._njoints = self._mj_model.nu  # number of actuators
-
-        self._floating_base_add = self._mj_model.jnt_dofadr[
-            np.where(self._mj_model.jnt_type == 0)
-        ][
-            0
-        ]  # Assuming there is only one floating base! the jnt_type==0 is a floating joint. 3 is a hinge
 
         self._torso_body_id = self._mj_model.body(constants.ROOT_BODY).id
         self._torso_mass = self._mj_model.body_subtreemass[self._torso_body_id]
@@ -247,6 +243,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 np.arange(self._floating_base_add, self._floating_base_add + 7),
             )
         ]
+
         qpos = qpos.at[
             ~np.isin(
                 range(len(qpos)),
@@ -272,7 +269,9 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 np.arange(self._floating_base_add, self._floating_base_add + 7),
             )
         ]
-        data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=ctrl)
+
+        full_qpos=self.set_complete_qpos_from_joints(qpos,self._mj_model.keyframe("home").qpos)
+        data = mjx_env.init(self.mjx_model, qpos=full_qpos, qvel=qvel, ctrl=ctrl)
         rng, cmd_rng = jax.random.split(rng)
         cmd = self.sample_command(cmd_rng)
 

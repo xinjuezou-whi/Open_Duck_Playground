@@ -73,9 +73,22 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         self.actual_joint_ids = [
             self.get_joint_id_from_name(n) for n in self.actuator_names
         ]
+        self.backlash_joint_ids=[
+            self.get_joint_id_from_name(n) for n in self.backlash_joint_names
+        ]
         self.actual_joint_dict = {
             n: self.get_joint_id_from_name(n) for n in self.actuator_names
         }
+
+        self._floating_base_add = self._mj_model.jnt_dofadr[
+            jp.where(self._mj_model.jnt_type == 0)
+        ][
+            0
+        ]  # Assuming there is only one floating base! the jnt_type==0 is a floating joint. 3 is a hinge
+
+        self.all_joint_no_backlash_ids=[idx for idx in self.all_joint_ids if idx not in self.backlash_joint_ids]+list(range(self._floating_base_add,self._floating_base_add+7))
+
+
 
         print(f"actuators: {self.actuator_names}")
         print(f"joints: {self.joint_names}")
@@ -103,6 +116,15 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         )
         return addr
 
+
+    def exclude_backlash_joints_idx(self) -> jax.Array:
+        """Return the all the idx of actual joints and floating base"""
+        addr = jp.array(
+            [self._mj_model.jnt_qposadr[idx] for idx in self.all_joint_no_backlash_ids]
+        )
+        return addr
+
+
     def get_all_joints_idx(self) -> jax.Array:
         """Return the all the idx of all joints"""
         addr = jp.array([self._mj_model.jnt_qposadr[idx] for idx in self.all_joint_ids])
@@ -127,6 +149,15 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
     def get_all_joints_qpvel(self, data: mjx.Data) -> jax.Array:
         """Return the all the qvel of all joints"""
         return data.qvel[self.get_all_joints_idx()]
+
+    def get_joints_nobacklash_qpos(self, data: mjx.Data) -> jax.Array:
+        """Return the all the qpos of actual joints with the floating base"""
+        return data.qpos[self.exclude_backlash_joints_idx()]
+
+    def set_complete_qpos_from_joints(self, no_backlash_qpos: jax.Array, full_qpos: jax.Array) -> jax.Array:
+        """In the case of backlash joints, we want to ignore them (remove them) but we still need to set the complete state incuding them"""
+        full_qpos[self.exclude_backlash_joints_idx()] = no_backlash_qpos
+        return jp.array(full_qpos)
 
     # Sensor readings.
     def get_gravity(self, data: mjx.Data) -> jax.Array:
