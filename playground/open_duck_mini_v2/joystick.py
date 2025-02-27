@@ -363,8 +363,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
         # Handle action delay
         action_history = (
-            jp.roll(state.info["action_history"], self._njoints)
-            .at[: self._njoints]
+            jp.roll(state.info["action_history"], self._actuators)
+            .at[: self._actuators]
             .set(action)
         )
         state.info["action_history"] = action_history
@@ -374,7 +374,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             minval=self._config.noise_config.action_min_delay,
             maxval=self._config.noise_config.action_max_delay,
         )
-        action_w_delay = action_history.reshape((-1, self._njoints))[
+        action_w_delay = action_history.reshape((-1, self._actuators))[
             action_idx[0]
         ]  # action with delay
 
