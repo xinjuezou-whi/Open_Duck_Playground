@@ -188,7 +188,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         self._foot_linvel_sensor_adr = jp.array(foot_linvel_sensor_adr)
 
         # noise in the simu?
-        qpos_noise_scale = np.zeros(self._njoints)
+        qpos_noise_scale = np.zeros(self._actuators)
 
         hip_ids = [
             idx for idx, j in enumerate(constants.JOINTS_ORDER_NO_HEAD) if "_hip" in j
