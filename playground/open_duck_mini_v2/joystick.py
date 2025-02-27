@@ -270,7 +270,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             )
         ]
 
-        full_qpos=self.set_complete_qpos_from_joints(qpos,self._mj_model.keyframe("home").qpos)
+        full_qpos=self.set_complete_qpos_from_joints(qpos,jp.array(self._mj_model.keyframe("home").qpos))
         data = mjx_env.init(self.mjx_model, qpos=full_qpos, qvel=qvel, ctrl=ctrl)
         rng, cmd_rng = jax.random.split(rng)
         cmd = self.sample_command(cmd_rng)
