@@ -35,14 +35,14 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
         # Scale static friction: *U(0.9, 1.1).
         rng, key = jax.random.split(rng)
         frictionloss = model.dof_frictionloss[6:] * jax.random.uniform(
-            key, shape=(model.njnt,), minval=0.9, maxval=1.2  # was 0.9, 1.1
+            key, shape=(model.njnt-1,), minval=0.9, maxval=1.2  # was 0.9, 1.1
         )
         dof_frictionloss = model.dof_frictionloss.at[6:].set(frictionloss)
 
         # Scale armature: *U(1.0, 1.05).
         rng, key = jax.random.split(rng)
         armature = model.dof_armature[6:] * jax.random.uniform(
-            key, shape=(model.njnt,), minval=0.9, maxval=1.1  # was 1.0, 1.05
+            key, shape=(model.njnt-1,), minval=0.9, maxval=1.1  # was 1.0, 1.05
         )
         dof_armature = model.dof_armature.at[6:].set(armature)
 
@@ -72,7 +72,7 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
 
         # # Randomize KP
         rng, key = jax.random.split(rng)
-        factor = jax.random.uniform(key, shape=(model.njnt,), minval=0.8, maxval=1.2)
+        factor = jax.random.uniform(key, shape=(model.njnt-1,), minval=0.8, maxval=1.2)
         current_kp = model.actuator_gainprm[:, 0]
         actuator_gainprm = model.actuator_gainprm.at[:, 0].set(current_kp * factor)
         actuator_biasprm = model.actuator_biasprm.at[:, 1].set(-current_kp * factor)
