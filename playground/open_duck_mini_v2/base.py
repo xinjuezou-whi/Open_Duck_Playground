@@ -156,7 +156,7 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
 
     def set_complete_qpos_from_joints(self, no_backlash_qpos: jax.Array, full_qpos: jax.Array) -> jax.Array:
         """In the case of backlash joints, we want to ignore them (remove them) but we still need to set the complete state incuding them"""
-        full_qpos[self.exclude_backlash_joints_idx()] = no_backlash_qpos
+        full_qpos.at[self.exclude_backlash_joints_idx()].set(no_backlash_qpos)
         return jp.array(full_qpos)
 
     # Sensor readings.
