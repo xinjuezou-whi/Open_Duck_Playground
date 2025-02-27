@@ -18,6 +18,7 @@
 import jax
 from mujoco import mjx
 
+
 FLOOR_GEOM_ID = 0
 TORSO_BODY_ID = 1
 
