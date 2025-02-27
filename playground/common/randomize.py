@@ -72,7 +72,7 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
 
         # # Randomize KP
         rng, key = jax.random.split(rng)
-        factor = jax.random.uniform(key, shape=(model.njnt-1,), minval=0.8, maxval=1.2)
+        factor = jax.random.uniform(key, shape=(model.nu,), minval=0.8, maxval=1.2)
         current_kp = model.actuator_gainprm[:, 0]
         actuator_gainprm = model.actuator_gainprm.at[:, 0].set(current_kp * factor)
         actuator_biasprm = model.actuator_biasprm.at[:, 1].set(-current_kp * factor)
