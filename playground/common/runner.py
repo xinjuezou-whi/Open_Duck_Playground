@@ -39,7 +39,7 @@ class BaseRunner(ABC):
         self.writer = SummaryWriter(log_dir=self.output_dir)
         self.action_size = None
         self.obs_size = None
-
+        self.num_timesteps = args.num_timesteps
         # CACHE STUFF
         os.makedirs(".tmp", exist_ok=True)
         jax.config.update("jax_compilation_cache_dir", ".tmp/jax_cache")
@@ -94,6 +94,8 @@ class BaseRunner(ABC):
             del self.ppo_training_params["network_factory"]
         else:
             network_factory = ppo_networks.make_ppo_networks
+        self.ppo_training_params["num_timesteps"] = self.num_timesteps
+        print(f"PPO params: {self.ppo_training_params}")
 
         train_fn = functools.partial(
             ppo.train,
