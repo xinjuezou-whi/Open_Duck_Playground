@@ -514,6 +514,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             joint_vel
             # + (2 * jax.random.uniform(noise_rng, shape=joint_vel.shape) - 1)
             + jax.random.uniform(noise_rng, shape=joint_vel.shape)
+
             * self._config.noise_config.level
             * self._config.noise_config.scales.joint_vel
         )
