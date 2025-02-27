@@ -21,12 +21,14 @@ from etils import epath
 ROOT_PATH = epath.Path(__file__).parent
 FEET_ONLY_FLAT_TERRAIN_XML = ROOT_PATH / "xmls" / "scene_mjx_flat_terrain.xml"
 FEET_ONLY_ROUGH_TERRAIN_XML = ROOT_PATH / "xmls" / "scene_mjx_rough_terrain.xml"
+FEET_ONLY_FLAT_TERRAIN_BACKLASH_XML = ROOT_PATH / "xmls" / "scene_mjx_flat_terrain_nohead_backlash.xml"
 
 
 def task_to_xml(task_name: str) -> epath.Path:
     return {
         "flat_terrain": FEET_ONLY_FLAT_TERRAIN_XML,
         "rough_terrain": FEET_ONLY_ROUGH_TERRAIN_XML,
+        "flat_terrain_backlash": FEET_ONLY_FLAT_TERRAIN_BACKLASH_XML,
     }[task_name]
 
 

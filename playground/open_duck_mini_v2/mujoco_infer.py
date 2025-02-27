@@ -48,7 +48,13 @@ class MjInfer():
         self.backlash_joint_ids=[
             self.get_joint_id_from_name(n) for n in self.backlash_joint_names
         ]
+
         self.all_joint_ids = [self.get_joint_id_from_name(n) for n in self.joint_names]
+
+        # self.qvel_ids=[
+        #     self.model.get_joint_qvel_addr(n) for n in self.joint_names
+        # ]
+
 
         self._floating_base_add = self.model.jnt_dofadr[
             np.where(self.model.jnt_type == 0)
@@ -58,6 +64,8 @@ class MjInfer():
 
         self.all_joint_no_backlash_ids=[idx for idx in self.all_joint_ids if idx not in self.backlash_joint_ids]+list(range(self._floating_base_add,self._floating_base_add+7))
 
+        self.all_qvel_ids=[self.model.jnt_dofadr[jad] for jad in self.all_joint_ids]
+        self.actual_qvel_ids=[self.model.jnt_dofadr[jad] for jad in self.actual_joint_ids]
 
         self.model.opt.timestep = 0.002
         self.data = mujoco.MjData(self.model)
@@ -100,6 +108,13 @@ class MjInfer():
         self.imitation_i = 0
         self.saved_obs = []
 
+
+        print(f"joint names: {self.joint_names}")
+        print(f"actuator names: {self.actuator_names}")
+        print(f"backlash joint names: {self.backlash_joint_names}")
+        print(f"actual joints idx: {self.get_actual_joints_idx()}")
+
+
     def get_actual_joints_idx(self) -> np.ndarray:
         """Return the all the idx of actual joints"""
         addr = np.array(
@@ -116,6 +131,10 @@ class MjInfer():
         """Return the id of a specified joint"""
         return mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, name)
 
+
+    def get_dof_id_from_name(self, name: str) -> int:
+        """Return the id of a specified dof"""
+        return mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_DOF, name)
 
     def get_all_joints_idx(self) -> np.ndarray:
         """Return the all the idx of all joints"""
@@ -136,7 +155,7 @@ class MjInfer():
 
     def get_actual_joints_qpvel(self, data: mujoco.MjData) -> np.ndarray:
         """Return the all the qvel of actual joints"""
-        return data.qvel[self.get_actual_joints_idx()]
+        return data.qvel[self.actual_qvel_ids]
 
 
     def get_sensor(self, data, name, dimensions):

@@ -76,6 +76,10 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         self.backlash_joint_ids=[
             self.get_joint_id_from_name(n) for n in self.backlash_joint_names
         ]
+
+        self.all_qvel_ids=[self._mj_model.jnt_dofadr[jad] for jad in self.all_joint_ids]
+        self.actual_qvel_ids=[self._mj_model.jnt_dofadr[jad] for jad in self.actual_joint_ids]
+
         self.actual_joint_dict = {
             n: self.get_joint_id_from_name(n) for n in self.actuator_names
         }
@@ -87,7 +91,6 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         ]  # Assuming there is only one floating base! the jnt_type==0 is a floating joint. 3 is a hinge
 
         self.all_joint_no_backlash_ids=[idx for idx in self.all_joint_ids if idx not in self.backlash_joint_ids]+list(range(self._floating_base_add,self._floating_base_add+7))
-
 
 
         print(f"actuators: {self.actuator_names}")
@@ -103,6 +106,11 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
     def get_joint_id_from_name(self, name: str) -> int:
         """Return the id of a specified joint"""
         return mujoco.mj_name2id(self._mj_model, mujoco.mjtObj.mjOBJ_JOINT, name)
+
+    def get_dof_id_from_name(self, name: str) -> int:
+        """Return the id of a specified dof"""
+        return mujoco.mj_name2id(self._mj_model, mujoco.mjtObj.mjOBJ_DOF, name)
+
 
     def get_actual_joint_qpos_from_name(self, data: mjx.Data, name: str) -> jax.Array:
         """Return the qpos of a given actual joint"""
@@ -140,7 +148,7 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
 
     def get_actual_joints_qpvel(self, data: mjx.Data) -> jax.Array:
         """Return the all the qvel of actual joints"""
-        return data.qvel[self.get_actual_joints_idx()]
+        return data.qvel[self.actual_qvel_ids]
 
     def get_all_joints_qpos(self, data: mjx.Data) -> jax.Array:
         """Return the all the qpos of all joints"""
@@ -148,7 +156,7 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
 
     def get_all_joints_qpvel(self, data: mjx.Data) -> jax.Array:
         """Return the all the qvel of all joints"""
-        return data.qvel[self.get_all_joints_idx()]
+        return data.qvel[self.all_qvel_ids]
 
     def get_joints_nobacklash_qpos(self, data: mjx.Data) -> jax.Array:
         """Return the all the qpos of actual joints with the floating base"""
