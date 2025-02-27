@@ -602,7 +602,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                     self._floating_base_add : self._floating_base_add + 6
                 ],  # floating base qvel
                 self.get_actual_joints_qpos(data),
-                self.get_actual_joints_qpvel(data),
+                self.get_actual_joints_qvel(data),
                 contact,
                 info["current_reference_motion"],
                 info["command"],
@@ -612,7 +612,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 # info["command"], data.qpos[7:], data.qvel[6:], self._default_pose
                 info["command"],
                 self.get_actual_joints_qpos(data),
-                self.get_actual_joints_qpvel(data),
+                self.get_actual_joints_qvel(data),
                 self._default_actuator,
             ),
         }

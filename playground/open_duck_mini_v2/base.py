@@ -77,8 +77,8 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
             self.get_joint_id_from_name(n) for n in self.backlash_joint_names
         ]
 
-        self.all_qvel_ids=[self._mj_model.jnt_dofadr[jad] for jad in self.all_joint_ids]
-        self.actual_qvel_ids=[self._mj_model.jnt_dofadr[jad] for jad in self.actual_joint_ids]
+        self.all_qvel_ids=jp.array([self._mj_model.jnt_dofadr[jad] for jad in self.all_joint_ids])
+        self.actual_qvel_ids=jp.array([self._mj_model.jnt_dofadr[jad] for jad in self.actual_joint_ids])
 
         self.actual_joint_dict = {
             n: self.get_joint_id_from_name(n) for n in self.actuator_names
@@ -146,7 +146,7 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         """Set the qpos only for the actual joints (omit the backlash joint)"""
         return data.qpos.at[self.get_actual_joints_idx()].set(qpos)
 
-    def get_actual_joints_qpvel(self, data: mjx.Data) -> jax.Array:
+    def get_actual_joints_qvel(self, data: mjx.Data) -> jax.Array:
         """Return the all the qvel of actual joints"""
         return data.qvel[self.actual_qvel_ids]
 
@@ -154,7 +154,7 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         """Return the all the qpos of all joints"""
         return data.qpos[self.get_all_joints_idx()]
 
-    def get_all_joints_qpvel(self, data: mjx.Data) -> jax.Array:
+    def get_all_joints_qvel(self, data: mjx.Data) -> jax.Array:
         """Return the all the qvel of all joints"""
         return data.qvel[self.all_qvel_ids]
 
