@@ -505,7 +505,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         )
 
         # joint_vel = data.qvel[6:]
-        joint_vel = self.get_actual_joints_qpvel(data)
+        joint_vel = self.get_actual_joints_qvel(data)
         info["rng"], noise_rng = jax.random.split(info["rng"])
         noisy_joint_vel = (
             joint_vel
