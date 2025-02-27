@@ -310,7 +310,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             "push_interval_steps": push_interval_steps,
             # History related.
             "action_history": jp.zeros(
-                self._config.noise_config.action_max_delay * self._njoints
+                self._config.noise_config.action_max_delay * self._actuators
             ),
             "imu_history": jp.zeros(self._config.noise_config.imu_max_delay * 3),
             # imitation related
