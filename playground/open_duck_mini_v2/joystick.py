@@ -162,7 +162,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             ]
         )
 
-        self._njoints = self._mj_model.nu  # number of actuators
+        self._njoints = self._mj_model.njnt  # number of joints
+        self._actuators = self._mj_model.nu  # number of actuators
 
         self._torso_body_id = self._mj_model.body(constants.ROOT_BODY).id
         self._torso_mass = self._mj_model.body_subtreemass[self._torso_body_id]
@@ -250,7 +251,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 np.arange(self._floating_base_add, self._floating_base_add + 7),
             )
         ].set(
-            qpos_j * jax.random.uniform(key, (self._njoints,), minval=0.5, maxval=1.5)
+            qpos_j * jax.random.uniform(key, (self._actuators,), minval=0.5, maxval=1.5)
         )
 
         # init joint vel
@@ -271,6 +272,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         ]
 
         full_qpos=self.set_complete_qpos_from_joints(qpos,jp.array(self._mj_model.keyframe("home").qpos))
+        # print(f'DEBUG: fullqpos:{full_qpos} qvel:{qvel} ctrl:{ctrl}')
         data = mjx_env.init(self.mjx_model, qpos=full_qpos, qvel=qvel, ctrl=ctrl)
         rng, cmd_rng = jax.random.split(rng)
         cmd = self.sample_command(cmd_rng)
@@ -496,10 +498,11 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
         # joint_angles = data.qpos[7:]
         joint_angles = self.get_actual_joints_qpos(data)
+
         info["rng"], noise_rng = jax.random.split(info["rng"])
         noisy_joint_angles = (
             joint_angles
-            + (2 * jax.random.uniform(noise_rng, shape=joint_angles.shape) - 1)
+            + (2 * jax.random.uniform(noise_rng, shape=joint_angles.shape) - 1) #WTF
             * self._config.noise_config.level
             * self._qpos_noise_scale
         )
@@ -509,7 +512,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         info["rng"], noise_rng = jax.random.split(info["rng"])
         noisy_joint_vel = (
             joint_vel
-            + (2 * jax.random.uniform(noise_rng, shape=joint_vel.shape) - 1)
+            # + (2 * jax.random.uniform(noise_rng, shape=joint_vel.shape) - 1)
+            + jax.random.uniform(noise_rng, shape=joint_vel.shape)
             * self._config.noise_config.level
             * self._config.noise_config.scales.joint_vel
         )
