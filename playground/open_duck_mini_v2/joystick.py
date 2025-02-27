@@ -502,7 +502,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         info["rng"], noise_rng = jax.random.split(info["rng"])
         noisy_joint_angles = (
             joint_angles
-            + (2 * jax.random.uniform(noise_rng, shape=joint_angles.shape) - 1) #WTF
+            + (2.0 * jax.random.uniform(noise_rng, shape=joint_angles.shape) - 1.0) #WTF
             * self._config.noise_config.level
             * self._qpos_noise_scale
         )
@@ -512,9 +512,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         info["rng"], noise_rng = jax.random.split(info["rng"])
         noisy_joint_vel = (
             joint_vel
-            # + (2 * jax.random.uniform(noise_rng, shape=joint_vel.shape) - 1)
-            + jax.random.uniform(noise_rng, shape=joint_vel.shape)
-
+            + (2.0 * jax.random.uniform(noise_rng, shape=joint_vel.shape) - 1.0)
             * self._config.noise_config.level
             * self._config.noise_config.scales.joint_vel
         )
