@@ -231,7 +231,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         )
 
 
-        self.set_floating_base_qpos(base_qpos, qpos)
+        qpos=self.set_floating_base_qpos(base_qpos, qpos)
         # init joint position
         # qpos[7:]=*U(0.0, 0.1)
         rng, key = jax.random.split(rng)
@@ -367,8 +367,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         )
         push *= self._config.push_config.enable
         qvel = state.data.qvel
-        qvel = qvel.at[: self._floating_base_qvel_addr + 2].set(
-            push * push_magnitude + qvel[: self._floating_base_qvel_addr + 2]
+        qvel = qvel.at[self._floating_base_qvel_addr: self._floating_base_qvel_addr + 2].set(
+            push * push_magnitude + qvel[self._floating_base_qvel_addr: self._floating_base_qvel_addr + 2]
         )  # floating base x,y
         data = state.data.replace(qvel=qvel)
         state = state.replace(data=data)
