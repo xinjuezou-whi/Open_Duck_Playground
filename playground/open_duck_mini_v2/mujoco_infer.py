@@ -31,41 +31,61 @@ class MjInfer():
 
 
         NUM_DOFS = self.model.nu
-
-        self.joint_names = [
-            self.model.jnt(k).name for k in range(1, self.model.njnt)
-        ]  # all the joint (including the backlash joints)
+        self.floating_base_name= [self.model.jnt(k).name for k in range(0, self.model.njnt) if self.model.jnt(k).type == 0][0] #assuming only one floating object!
         self.actuator_names = [
             self.model.actuator(k).name for k in range(0, self.model.nu)
         ]  # will be useful to get only the actuators we care about
-
+        self.joint_names = [ #njnt = all joints (including floating base, actuators and backlash joints)
+            self.model.jnt(k).name for k in range(0, self.model.njnt)
+        ]  # all the joint (including the backlash joints)
         self.backlash_joint_names = [
-            j for j in self.joint_names if j not in self.actuator_names
+            j for j in self.joint_names if j not in self.actuator_names and j not in self.floating_base_name
         ]  # only the dummy backlash joint
-        self.actual_joint_ids = [
+        self.all_joint_ids = [self.get_joint_id_from_name(n) for n in self.joint_names]
+        self.all_joint_qpos_addr = [self.get_joint_addr_from_name(n) for n in self.joint_names]
+
+        self.actuator_joint_ids = [
             self.get_joint_id_from_name(n) for n in self.actuator_names
         ]
+        self.actuator_joint_qpos_addr = [
+            self.get_joint_addr_from_name(n) for n in self.actuator_names
+        ]
+
         self.backlash_joint_ids=[
             self.get_joint_id_from_name(n) for n in self.backlash_joint_names
         ]
 
-        self.all_joint_ids = [self.get_joint_id_from_name(n) for n in self.joint_names]
+        self.backlash_joint_qpos_addr=[
+            self.get_joint_addr_from_name(n) for n in self.backlash_joint_names
+        ]
 
-        # self.qvel_ids=[
-        #     self.model.get_joint_qvel_addr(n) for n in self.joint_names
-        # ]
+        self.all_qvel_addr=np.array([self.model.jnt_dofadr[jad] for jad in self.all_joint_ids])
+        self.actuator_qvel_addr=np.array([self.model.jnt_dofadr[jad] for jad in self.actuator_joint_ids])
 
+        self.actuator_joint_dict = {
+            n: self.get_joint_id_from_name(n) for n in self.actuator_names
+        }
 
-        self._floating_base_add = self.model.jnt_dofadr[
+        self._floating_base_qpos_addr = self.model.jnt_qposadr[
             np.where(self.model.jnt_type == 0)
         ][
             0
         ]  # Assuming there is only one floating base! the jnt_type==0 is a floating joint. 3 is a hinge
 
-        self.all_joint_no_backlash_ids=[idx for idx in self.all_joint_ids if idx not in self.backlash_joint_ids]+list(range(self._floating_base_add,self._floating_base_add+7))
+        self._floating_base_qvel_addr = self.model.jnt_dofadr[
+            np.where(self.model.jnt_type == 0)
+        ][
+            0
+        ]  # Assuming there is only one floating base! the jnt_type==0 is a floating joint. 3 is a hinge
 
-        self.all_qvel_ids=[self.model.jnt_dofadr[jad] for jad in self.all_joint_ids]
-        self.actual_qvel_ids=[self.model.jnt_dofadr[jad] for jad in self.actual_joint_ids]
+        self._floating_base_id = self.model.joint(self.floating_base_name).id
+
+        # self.all_joint_no_backlash_ids=np.zeros(7+self.model.nu)
+        all_idx=self.backlash_joint_ids+list(range(self._floating_base_qpos_addr,self._floating_base_qpos_addr+7))
+        all_idx.sort()
+
+        # self.all_joint_no_backlash_ids=[idx for idx in self.all_joint_ids if idx not in self.backlash_joint_ids]+list(range(self._floating_base_add,self._floating_base_add+7))
+        self.all_joint_no_backlash_ids=[idx for idx in all_idx]
 
         self.model.opt.timestep = 0.002
         self.data = mujoco.MjData(self.model)
@@ -84,7 +104,7 @@ class MjInfer():
         self.decimation = 10
 
         self.init_pos = np.array(
-            self.get_all_joints_qpos(self.model.keyframe("home"))
+            self.get_all_joints_qpos(self.model.keyframe("home").qpos)
         )  # pose of all the joints (no floating base)
         self.default_actuator = self.model.keyframe(
             "home"
@@ -112,15 +132,7 @@ class MjInfer():
         print(f"joint names: {self.joint_names}")
         print(f"actuator names: {self.actuator_names}")
         print(f"backlash joint names: {self.backlash_joint_names}")
-        print(f"actual joints idx: {self.get_actual_joints_idx()}")
-
-
-    def get_actual_joints_idx(self) -> np.ndarray:
-        """Return the all the idx of actual joints"""
-        addr = np.array(
-            [self.model.jnt_qposadr[idx] for idx in self.actual_joint_ids]
-        )
-        return addr
+        # print(f"actual joints idx: {self.get_actual_joints_idx()}")
 
 
     def get_actuator_id_from_name(self, name: str) -> int:
@@ -132,30 +144,90 @@ class MjInfer():
         return mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, name)
 
 
+    def get_joint_addr_from_name(self, name: str) -> int:
+        """Return the address of a specified joint"""
+        return self.model.joint(name).qposadr
+
     def get_dof_id_from_name(self, name: str) -> int:
         """Return the id of a specified dof"""
         return mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_DOF, name)
 
-    def get_all_joints_idx(self) -> np.ndarray:
+
+    def get_actuator_joint_qpos_from_name(self, data: np.ndarray, name: str) -> np.ndarray:
+        """Return the qpos of a given actual joint"""
+        addr = self.model.jnt_qposadr[self.actuator_joint_dict[name]]
+        return data[addr]
+
+    def get_actuator_joints_addr(self) -> np.ndarray:
+        """Return the all the idx of actual joints"""
+        addr = np.array(
+            [self.model.jnt_qposadr[idx] for idx in self.actuator_joint_ids]
+        )
+        return addr
+
+    def get_floating_base_qpos(self, data:np.ndarray) -> np.ndarray:
+        return data[self._floating_base_qpos_addr:self._floating_base_qvel_addr+7]
+
+    def get_floating_base_qvel(self, data:np.ndarray) -> np.ndarray:
+        return data[self._floating_base_qvel_addr:self._floating_base_qvel_addr+6]
+
+
+    def set_floating_base_qpos(self, new_qpos:np.ndarray, qpos:np.ndarray) -> np.ndarray:
+        qpos[self._floating_base_qpos_addr:self._floating_base_qpos_addr+7]=new_qpos
+        return qpos
+
+    def set_floating_base_qvel(self, new_qvel:np.ndarray, qvel:np.ndarray) -> np.ndarray:
+        qvel[self._floating_base_qvel_addr:self._floating_base_qvel_addr+6]=new_qvel
+        return qvel
+
+    def exclude_backlash_joints_addr(self) -> np.ndarray:
+        """Return the all the idx of actual joints and floating base"""
+        addr = np.array(
+            [self.model.jnt_qposadr[idx] for idx in self.all_joint_no_backlash_ids]
+        )
+        return addr
+
+
+    def get_all_joints_addr(self) -> np.ndarray:
         """Return the all the idx of all joints"""
         addr = np.array([self.model.jnt_qposadr[idx] for idx in self.all_joint_ids])
         return addr
 
-    def get_all_joints_qpos(self, data: mujoco.MjData) -> np.ndarray:
-        """Return the all the qpos of all joints"""
-        return data.qpos[self.get_all_joints_idx()]
-
-    def get_actual_joints_qpos(self, data: mujoco.MjData) -> np.ndarray:
+    def get_actuator_joints_qpos(self, data: np.ndarray) -> np.ndarray:
         """Return the all the qpos of actual joints"""
-        return data.qpos[self.get_actual_joints_idx()]
+        return data[self.get_actuator_joints_addr()]
 
-    def set_actual_joints_qpos(self, qpos: np.ndarray, data: mujoco.MjData) -> np.ndarray:
+    def set_actuator_joints_qpos(self, new_qpos: np.ndarray, qpos: np.ndarray) -> np.ndarray:
         """Set the qpos only for the actual joints (omit the backlash joint)"""
-        return data.qpos.at[self.get_actual_joints_idx()].set(qpos)
+        qpos[self.get_actuator_joints_addr()]=new_qpos
+        return qpos
 
-    def get_actual_joints_qpvel(self, data: mujoco.MjData) -> np.ndarray:
+    def get_actuator_joints_qvel(self, data: np.ndarray) -> np.ndarray:
         """Return the all the qvel of actual joints"""
-        return data.qvel[self.actual_qvel_ids]
+        return data[self.actuator_qvel_addr]
+
+    def set_actuator_joints_qvel(self, new_qvel: np.ndarray, qvel: np.ndarray) -> np.ndarray:
+        """Set the qvel only for the actual joints (omit the backlash joint)"""
+        qvel[self.actuator_qvel_addr]=new_qvel
+        return qvel
+
+    def get_all_joints_qpos(self, data: np.ndarray) -> np.ndarray:
+        """Return the all the qpos of all joints"""
+        return data[self.get_all_joints_addr()]
+
+    def get_all_joints_qvel(self, data: np.ndarray) -> np.ndarray:
+        """Return the all the qvel of all joints"""
+        return data[self.all_qvel_addr]
+
+    def get_joints_nobacklash_qpos(self, data: np.ndarray) -> np.ndarray:
+        """Return the all the qpos of actual joints with the floating base"""
+        return data[self.exclude_backlash_joints_addr()]
+
+    def set_complete_qpos_from_joints(self, no_backlash_qpos: np.ndarray, full_qpos: np.ndarray) -> np.ndarray:
+        """In the case of backlash joints, we want to ignore them (remove them) but we still need to set the complete state incuding them"""
+        full_qpos[self.exclude_backlash_joints_addr()]=no_backlash_qpos
+        return np.array(full_qpos)
+
 
 
     def get_sensor(self, data, name, dimensions):
@@ -206,8 +278,8 @@ class MjInfer():
         data, last_action, command  # , qvel_history, qpos_error_history, gravity_history
     ):
         gravity = self.get_gravity(data)
-        joint_angles = self.get_actual_joints_qpos(data)
-        joint_vel = self.get_actual_joints_qpvel(data)
+        joint_angles = self.get_actuator_joints_qpos(data.qpos)
+        joint_vel = self.get_actuator_joints_qvel(data.qvel)
 
         contacts = self.get_feet_contacts(data)
 

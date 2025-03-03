@@ -219,11 +219,6 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         base_qpos=jp.zeros(7)
         base_qpos.at[0:2].set(qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2] + dxy)
 
-        # self.set_floating_base_qpos(qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2] + dxy, qpos)
-
-        # qpos = qpos.at[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2].set(
-        #     qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2] + dxy
-        # )
         rng, key = jax.random.split(rng)
         yaw = jax.random.uniform(key, (1,), minval=-3.14, maxval=3.14)
         quat = math.axis_angle_to_quat(jp.array([0, 0, 1]), yaw)
@@ -241,35 +236,9 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # qpos[7:]=*U(0.0, 0.1)
         rng, key = jax.random.split(rng)
 
-        # qpos = qpos.at[7:].set(
-        #     qpos[7:] * jax.random.uniform(key, (self._njoints,), minval=0.5, maxval=1.5)
-        # )
+
         # multiply actual joints with noise (excluding floating base and backlash)
-
         qpos_j = self.get_actuator_joints_qpos(qpos)* jax.random.uniform(key, (self._actuators,), minval=0.5, maxval=1.5)
-
-        # qpos[
-        #     ~np.isin(
-        #         range(len(qpos)),
-        #         np.arange(self._floating_base_qpos_addr, self._floating_base_qpos_addr + 7),
-        #     )
-        # ]
-
-        # qpos_test=qpos[np.isin(
-        #         range(len(qpos)),
-        #         np.arange(self._floating_base_qpos_addr, self._floating_base_qpos_addr + 7),
-        #     )]
-        # print(f'DEBUG qpos_j {qpos_j} qpos {qpos} qpos_test {qpos_test}')
-
-        # qpos = qpos.at[
-        #     ~np.isin(
-        #         range(len(qpos)),
-        #         np.arange(self._floating_base_qpos_addr, self._floating_base_qpos_addr + 7),
-        #     )
-        # ].set(
-        #     qpos_j * jax.random.uniform(key, (self._actuators,), minval=0.5, maxval=1.5)
-        # )
-
         qpos=self.set_actuator_joints_qpos(qpos_j,qpos)
 
         # init joint vel
@@ -279,21 +248,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         #     jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5)
         # )
         qvel=self.set_floating_base_qvel(jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5),qvel)
-
-        # data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=qpos[~np.isin(range(len(qpos)),np.arange(self._floating_base_qpos_addr,self._floating_base_qpos_addr+7))])
-        # ctrl = qpos[
-        #     ~np.isin(
-        #         range(len(qpos)),
-        #         np.arange(self._floating_base_qpos_addr, self._floating_base_qpos_addr + 7),
-        #     )
-        # ]
-
         ctrl=self.get_actuator_joints_qpos(qpos)
-        #including floating base and backlash joint (if any)
-        # full_qpos=self.set_complete_qpos_from_joints(qpos,jp.array(self._mj_model.keyframe("home").qpos))
-        # full_qpos=jp.array(self._mj_model.keyframe("home").qpos)
-        # full_qpos=full_qpos.at[self.exclude_backlash_joints_addr()].set(qpos)
-        # print(f'DEBUG: init_qpos {self._mj_model.keyframe("home").qpos}\nqpos {qpos}\nqvel {qvel}\nctrl {ctrl}')
+
         data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=ctrl)
         rng, cmd_rng = jax.random.split(rng)
         cmd = self.sample_command(cmd_rng)
@@ -411,8 +367,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         )
         push *= self._config.push_config.enable
         qvel = state.data.qvel
-        qvel = qvel.at[: self._floating_base_qpos_addr + 2].set(
-            push * push_magnitude + qvel[: self._floating_base_qpos_addr + 2]
+        qvel = qvel.at[: self._floating_base_qvel_addr + 2].set(
+            push * push_magnitude + qvel[: self._floating_base_qvel_addr + 2]
         )  # floating base x,y
         data = state.data.replace(qvel=qvel)
         state = state.replace(data=data)
@@ -523,7 +479,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         info["rng"], noise_rng = jax.random.split(info["rng"])
         noisy_joint_angles = (
             joint_angles
-            + (2.0 * jax.random.uniform(noise_rng, shape=joint_angles.shape) - 1.0) #WTF
+            + (2.0 * jax.random.uniform(noise_rng, shape=joint_angles.shape) - 1.0)
             * self._config.noise_config.level
             * self._qpos_noise_scale
         )
@@ -623,7 +579,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 # data.qpos,
                 # data.qvel,
                 data.qvel[
-                    self._floating_base_qpos_addr : self._floating_base_qpos_addr + 6
+                    self._floating_base_qvel_addr : self._floating_base_qvel_addr + 6
                 ],  # floating base qvel
                 self.get_actuator_joints_qpos(data.qpos),
                 self.get_actuator_joints_qvel(data.qvel),
