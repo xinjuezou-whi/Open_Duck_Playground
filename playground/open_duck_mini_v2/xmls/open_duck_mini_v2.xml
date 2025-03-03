@@ -119,7 +119,7 @@
   <worldbody>
     <body name="base" pos="0 0 0.22">
       <!-- <body name="base" pos="0 0 0.4"> -->
-      <freejoint />
+      <freejoint name="floating_base"/>
       <site name="imu" pos="-0.08 -0.0 0.05"/>
       <camera name="front" pos="1.210 -0.435 0.32" xyaxes="0.342 0.940 0.000 -0.321 0.117 0.940" mode="trackcom"/>
       <camera name="track" pos="0.805 -1.105 0.2" xyaxes="0.814 0.580 0.000 -0.140 0.196 0.971" mode="trackcom"/>

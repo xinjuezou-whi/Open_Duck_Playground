@@ -113,15 +113,15 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         self._post_init()
 
     def _post_init(self) -> None:
-        self._init_q = jp.array(
-            self.get_joints_nobacklash_qpos(self._mj_model.keyframe("home"))
-        )  # complete pose of the robot (without backlash joints)
-        # self._init_q=self._mj_model.keyframe("home").qpos
+        # self._init_q = jp.array(
+        #     self.get_joints_nobacklash_qpos(self._mj_model.keyframe("home"))
+        # )  # complete pose of the robot (without backlash joints)
+        self._init_q=jp.array(self._mj_model.keyframe("home").qpos)
 
         # self._default_pose = jp.array(self._mj_model.keyframe("home").qpos[7:]) #pose of all the joints (no floating base)
-        self._default_pose = jp.array(
-            self.get_all_joints_qpos(self._mj_model.keyframe("home"))
-        )  # pose of all the joints (no floating base)
+        # self._default_pose = jp.array(
+        #     self.get_all_joints_qpos(self._mj_model.keyframe("home"))
+        # )  # pose of all the joints (no floating base)
         self._default_actuator = self._mj_model.keyframe(
             "home"
         ).ctrl  # ctrl of all the actual joints (no floating base and no backlash)
@@ -207,7 +207,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         self._qpos_noise_scale = jp.array(qpos_noise_scale)
 
     def reset(self, rng: jax.Array) -> mjx_env.State:
-        qpos = self._init_q
+        qpos = self._init_q #the complete qpos
 
         qvel = jp.zeros(self.mjx_model.nv)
 
@@ -216,20 +216,28 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         rng, key = jax.random.split(rng)
         dxy = jax.random.uniform(key, (2,), minval=-0.05, maxval=0.05)
 
-        qpos = qpos.at[self._floating_base_add : self._floating_base_add + 2].set(
-            qpos[self._floating_base_add : self._floating_base_add + 2] + dxy
-        )
+        base_qpos=jp.zeros(7)
+        base_qpos.at[0:2].set(qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2] + dxy)
+
+        # self.set_floating_base_qpos(qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2] + dxy, qpos)
+
+        # qpos = qpos.at[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2].set(
+        #     qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2] + dxy
+        # )
         rng, key = jax.random.split(rng)
         yaw = jax.random.uniform(key, (1,), minval=-3.14, maxval=3.14)
         quat = math.axis_angle_to_quat(jp.array([0, 0, 1]), yaw)
         new_quat = math.quat_mul(
-            qpos[self._floating_base_add + 3 : self._floating_base_add + 7], quat
+            qpos[self._floating_base_qpos_addr + 3 : self._floating_base_qpos_addr + 7], quat
         )
-        qpos = qpos.at[self._floating_base_add + 3 : self._floating_base_add + 7].set(
+
+        base_qpos.at[3:7].set(
             new_quat
         )
 
-        # init joint position #FIXME
+
+        self.set_floating_base_qpos(base_qpos, qpos)
+        # init joint position
         # qpos[7:]=*U(0.0, 0.1)
         rng, key = jax.random.split(rng)
 
@@ -238,42 +246,55 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # )
         # multiply actual joints with noise (excluding floating base and backlash)
 
-        qpos_j = qpos[
-            ~np.isin(
-                range(len(qpos)),
-                np.arange(self._floating_base_add, self._floating_base_add + 7),
-            )
-        ]
+        qpos_j = self.get_actuator_joints_qpos(qpos)* jax.random.uniform(key, (self._actuators,), minval=0.5, maxval=1.5)
 
-        qpos = qpos.at[
-            ~np.isin(
-                range(len(qpos)),
-                np.arange(self._floating_base_add, self._floating_base_add + 7),
-            )
-        ].set(
-            qpos_j * jax.random.uniform(key, (self._actuators,), minval=0.5, maxval=1.5)
-        )
+        # qpos[
+        #     ~np.isin(
+        #         range(len(qpos)),
+        #         np.arange(self._floating_base_qpos_addr, self._floating_base_qpos_addr + 7),
+        #     )
+        # ]
+
+        # qpos_test=qpos[np.isin(
+        #         range(len(qpos)),
+        #         np.arange(self._floating_base_qpos_addr, self._floating_base_qpos_addr + 7),
+        #     )]
+        # print(f'DEBUG qpos_j {qpos_j} qpos {qpos} qpos_test {qpos_test}')
+
+        # qpos = qpos.at[
+        #     ~np.isin(
+        #         range(len(qpos)),
+        #         np.arange(self._floating_base_qpos_addr, self._floating_base_qpos_addr + 7),
+        #     )
+        # ].set(
+        #     qpos_j * jax.random.uniform(key, (self._actuators,), minval=0.5, maxval=1.5)
+        # )
+
+        qpos=self.set_actuator_joints_qpos(qpos_j,qpos)
 
         # init joint vel
         # d(xyzrpy)=U(-0.05, 0.05)
         rng, key = jax.random.split(rng)
-        qvel = qvel.at[self._floating_base_add : self._floating_base_add + 6].set(
-            jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5)
-        )
+        # qvel = qvel.at[self._floating_base_qvel_addr : self._floating_base_qvel_addr + 6].set(
+        #     jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5)
+        # )
+        qvel=self.set_floating_base_qvel(jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5),qvel)
 
-        # FIXME
+        # data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=qpos[~np.isin(range(len(qpos)),np.arange(self._floating_base_qpos_addr,self._floating_base_qpos_addr+7))])
+        # ctrl = qpos[
+        #     ~np.isin(
+        #         range(len(qpos)),
+        #         np.arange(self._floating_base_qpos_addr, self._floating_base_qpos_addr + 7),
+        #     )
+        # ]
 
-        # data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=qpos[~np.isin(range(len(qpos)),np.arange(self._floating_base_add,self._floating_base_add+7))])
-        ctrl = qpos[
-            ~np.isin(
-                range(len(qpos)),
-                np.arange(self._floating_base_add, self._floating_base_add + 7),
-            )
-        ]
-
-        full_qpos=self.set_complete_qpos_from_joints(qpos,jp.array(self._mj_model.keyframe("home").qpos))
-        # print(f'DEBUG: fullqpos:{full_qpos} qvel:{qvel} ctrl:{ctrl}')
-        data = mjx_env.init(self.mjx_model, qpos=full_qpos, qvel=qvel, ctrl=ctrl)
+        ctrl=self.get_actuator_joints_qpos(qpos)
+        #including floating base and backlash joint (if any)
+        # full_qpos=self.set_complete_qpos_from_joints(qpos,jp.array(self._mj_model.keyframe("home").qpos))
+        # full_qpos=jp.array(self._mj_model.keyframe("home").qpos)
+        # full_qpos=full_qpos.at[self.exclude_backlash_joints_addr()].set(qpos)
+        # print(f'DEBUG: init_qpos {self._mj_model.keyframe("home").qpos}\nqpos {qpos}\nqvel {qvel}\nctrl {ctrl}')
+        data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=ctrl)
         rng, cmd_rng = jax.random.split(rng)
         cmd = self.sample_command(cmd_rng)
 
@@ -390,8 +411,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         )
         push *= self._config.push_config.enable
         qvel = state.data.qvel
-        qvel = qvel.at[: self._floating_base_add + 2].set(
-            push * push_magnitude + qvel[: self._floating_base_add + 2]
+        qvel = qvel.at[: self._floating_base_qpos_addr + 2].set(
+            push * push_magnitude + qvel[: self._floating_base_qpos_addr + 2]
         )  # floating base x,y
         data = state.data.replace(qvel=qvel)
         state = state.replace(data=data)
@@ -545,7 +566,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         accelerometer = self.get_accelerometer(data)
         global_angvel = self.get_global_angvel(data)
         feet_vel = data.sensordata[self._foot_linvel_sensor_adr].ravel()
-        root_height = data.qpos[self._floating_base_add + 2]
+        root_height = data.qpos[self._floating_base_qpos_addr + 2]
 
         privileged_state = jp.hstack(
             [
@@ -602,7 +623,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 # data.qpos,
                 # data.qvel,
                 data.qvel[
-                    self._floating_base_add : self._floating_base_add + 6
+                    self._floating_base_qpos_addr : self._floating_base_qpos_addr + 6
                 ],  # floating base qvel
                 self.get_actual_joints_qpos(data),
                 self.get_actual_joints_qvel(data),
