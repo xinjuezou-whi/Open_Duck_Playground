@@ -518,7 +518,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         noisy_gravity = imu_history.reshape((-1, 3))[imu_idx[0]]
 
         # joint_angles = data.qpos[7:]
-        joint_angles = self.get_actual_joints_qpos(data)
+        joint_angles = self.get_actuator_joints_qpos(data.qpos)
 
         info["rng"], noise_rng = jax.random.split(info["rng"])
         noisy_joint_angles = (
@@ -529,7 +529,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         )
 
         # joint_vel = data.qvel[6:]
-        joint_vel = self.get_actual_joints_qvel(data)
+        joint_vel = self.get_actuator_joints_qvel(data.qvel)
         info["rng"], noise_rng = jax.random.split(info["rng"])
         noisy_joint_vel = (
             joint_vel
@@ -625,8 +625,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 data.qvel[
                     self._floating_base_qpos_addr : self._floating_base_qpos_addr + 6
                 ],  # floating base qvel
-                self.get_actual_joints_qpos(data),
-                self.get_actual_joints_qvel(data),
+                self.get_actuator_joints_qpos(data),
+                self.get_actuator_joints_qvel(data),
                 contact,
                 info["current_reference_motion"],
                 info["command"],
@@ -635,8 +635,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             "stand_still": cost_stand_still(
                 # info["command"], data.qpos[7:], data.qvel[6:], self._default_pose
                 info["command"],
-                self.get_actual_joints_qpos(data),
-                self.get_actual_joints_qvel(data),
+                self.get_actuator_joints_qpos(data),
+                self.get_actuator_joints_qvel(data),
                 self._default_actuator,
             ),
         }
