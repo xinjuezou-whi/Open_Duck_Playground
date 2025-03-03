@@ -217,7 +217,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         dxy = jax.random.uniform(key, (2,), minval=-0.05, maxval=0.05)
 
         base_qpos=jp.zeros(7)
-        base_qpos.at[0:2].set(qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2] + dxy)
+        base_qpos=base_qpos.at[0:2].set(qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2] + dxy)
 
         rng, key = jax.random.split(rng)
         yaw = jax.random.uniform(key, (1,), minval=-3.14, maxval=3.14)
@@ -226,12 +226,13 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             qpos[self._floating_base_qpos_addr + 3 : self._floating_base_qpos_addr + 7], quat
         )
 
-        base_qpos.at[3:7].set(
+        base_qpos=base_qpos.at[3:7].set(
             new_quat
         )
 
 
         qpos=self.set_floating_base_qpos(base_qpos, qpos)
+
         # init joint position
         # qpos[7:]=*U(0.0, 0.1)
         rng, key = jax.random.split(rng)
@@ -247,6 +248,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # qvel = qvel.at[self._floating_base_qvel_addr : self._floating_base_qvel_addr + 6].set(
         #     jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5)
         # )
+
         qvel=self.set_floating_base_qvel(jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5),qvel)
         ctrl=self.get_actuator_joints_qpos(qpos)
 
