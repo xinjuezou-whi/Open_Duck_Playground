@@ -625,8 +625,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 data.qvel[
                     self._floating_base_qpos_addr : self._floating_base_qpos_addr + 6
                 ],  # floating base qvel
-                self.get_actuator_joints_qpos(data),
-                self.get_actuator_joints_qvel(data),
+                self.get_actuator_joints_qpos(data.qpos),
+                self.get_actuator_joints_qvel(data.qvel),
                 contact,
                 info["current_reference_motion"],
                 info["command"],
@@ -635,8 +635,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             "stand_still": cost_stand_still(
                 # info["command"], data.qpos[7:], data.qvel[6:], self._default_pose
                 info["command"],
-                self.get_actuator_joints_qpos(data),
-                self.get_actuator_joints_qvel(data),
+                self.get_actuator_joints_qpos(data.qpos),
+                self.get_actuator_joints_qvel(data.qvel),
                 self._default_actuator,
             ),
         }
