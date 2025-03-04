@@ -113,15 +113,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         self._post_init()
 
     def _post_init(self) -> None:
-        # self._init_q = jp.array(
-        #     self.get_joints_nobacklash_qpos(self._mj_model.keyframe("home"))
-        # )  # complete pose of the robot (without backlash joints)
-        self._init_q=jp.array(self._mj_model.keyframe("home").qpos)
 
-        # self._default_pose = jp.array(self._mj_model.keyframe("home").qpos[7:]) #pose of all the joints (no floating base)
-        # self._default_pose = jp.array(
-        #     self.get_all_joints_qpos(self._mj_model.keyframe("home"))
-        # )  # pose of all the joints (no floating base)
+        self._init_q=jp.array(self._mj_model.keyframe("home").qpos)
         self._default_actuator = self._mj_model.keyframe(
             "home"
         ).ctrl  # ctrl of all the actual joints (no floating base and no backlash)
@@ -138,12 +131,6 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         r = self._uppers - self._lowers
         self._soft_lowers = c - 0.5 * r * self._config.soft_joint_pos_limit_factor
         self._soft_uppers = c + 0.5 * r * self._config.soft_joint_pos_limit_factor
-
-        # get the indices of the hip joints
-        # self._hip_indices = jp.array([self._mj_model.jnt_qposadr[idx] for idx in constants.HIP_JOINT_NAMES])
-
-        # get the indices of the knee joints
-        # self._knee_indices = jp.array([self._mj_model.jnt_qposadr[idx] for idx in constants.KNEE_JOINT_NAMES])
 
         # weights for computing the cost of each joints compared to a reference pose
         self._weights = jp.array(
@@ -208,7 +195,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
     def reset(self, rng: jax.Array) -> mjx_env.State:
         qpos = self._init_q #the complete qpos
-
+        # print(f'DEBUG0 init qpos: {qpos}')
         qvel = jp.zeros(self.mjx_model.nv)
 
         # init position/orientation in environment
@@ -216,23 +203,23 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         rng, key = jax.random.split(rng)
         dxy = jax.random.uniform(key, (2,), minval=-0.05, maxval=0.05)
 
-        base_qpos=jp.zeros(7)
-        base_qpos=base_qpos.at[0:2].set(qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2] + dxy)
+        #floating base
+        base_qpos=self.get_floating_base_qpos(qpos)
+        base_qpos=base_qpos.at[0:2].set(qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2] + dxy) #x y noise
 
         rng, key = jax.random.split(rng)
         yaw = jax.random.uniform(key, (1,), minval=-3.14, maxval=3.14)
         quat = math.axis_angle_to_quat(jp.array([0, 0, 1]), yaw)
         new_quat = math.quat_mul(
             qpos[self._floating_base_qpos_addr + 3 : self._floating_base_qpos_addr + 7], quat
-        )
+        ) #yaw noise
 
         base_qpos=base_qpos.at[3:7].set(
             new_quat
         )
 
-
         qpos=self.set_floating_base_qpos(base_qpos, qpos)
-
+        # print(f'DEBUG1 base qpos: {qpos}')
         # init joint position
         # qpos[7:]=*U(0.0, 0.1)
         rng, key = jax.random.split(rng)
@@ -241,7 +228,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # multiply actual joints with noise (excluding floating base and backlash)
         qpos_j = self.get_actuator_joints_qpos(qpos)* jax.random.uniform(key, (self._actuators,), minval=0.5, maxval=1.5)
         qpos=self.set_actuator_joints_qpos(qpos_j,qpos)
-
+        # print(f'DEBUG2 joint qpos: {qpos}')
         # init joint vel
         # d(xyzrpy)=U(-0.05, 0.05)
         rng, key = jax.random.split(rng)
@@ -250,8 +237,9 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # )
 
         qvel=self.set_floating_base_qvel(jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5),qvel)
+        # print(f'DEBUG3 base qvel: {qvel}')
         ctrl=self.get_actuator_joints_qpos(qpos)
-
+        # print(f'DEBUG4 ctrl: {ctrl}')
         data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=ctrl)
         rng, cmd_rng = jax.random.split(rng)
         cmd = self.sample_command(cmd_rng)

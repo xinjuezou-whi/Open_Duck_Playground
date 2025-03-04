@@ -123,7 +123,10 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         print(f"backlash joints: {self.backlash_joint_names}")
         print(f"actuator joints ids: {self.actuator_joint_ids}")
         print(f"actuator joints dict: {self.actuator_joint_dict}")
-        # print(f"all joint no backlash ids: {self.all_joint_no_backlash_ids}")
+        print(f"floating qpos addr: {self._floating_base_qpos_addr} qvel addr: {self._floating_base_qvel_addr}")
+
+
+
     def get_actuator_id_from_name(self, name: str) -> int:
         """Return the id of a specified actuator"""
         return mujoco.mj_name2id(self._mj_model, mujoco.mjtObj.mjOBJ_ACTUATOR, name)
@@ -147,7 +150,7 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         addr = self._mj_model.jnt_qposadr[self.actuator_joint_dict[name]]
         return data[addr]
 
-    def get_actuator_joints_addr(self) -> jax.Array:
+    def get_actuator_joints_qpos_addr(self) -> jax.Array:
         """Return the all the idx of actual joints"""
         addr = jp.array(
             [self._mj_model.jnt_qposadr[idx] for idx in self.actuator_joint_ids]
@@ -183,11 +186,11 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
 
     def get_actuator_joints_qpos(self, data: jax.Array) -> jax.Array:
         """Return the all the qpos of actual joints"""
-        return data[self.get_actuator_joints_addr()]
+        return data[self.get_actuator_joints_qpos_addr()]
 
     def set_actuator_joints_qpos(self, new_qpos: jax.Array, qpos: jax.Array) -> jax.Array:
         """Set the qpos only for the actual joints (omit the backlash joint)"""
-        return qpos.at[self.get_actuator_joints_addr()].set(new_qpos)
+        return qpos.at[self.get_actuator_joints_qpos_addr()].set(new_qpos)
 
 
     def get_actuator_joints_qvel(self, data: jax.Array) -> jax.Array:
