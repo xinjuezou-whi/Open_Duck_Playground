@@ -58,6 +58,9 @@ init_pos = np.array(
 model = mujoco.MjModel.from_xml_path(
     "playground/open_duck_mini_v2/xmls/scene_mjx_flat_terrain.xml"
 )
+# model = mujoco.MjModel.from_xml_path(
+#     "playground/open_duck_mini_v2/xmls/scene_mjx_rough_terrain.xml"
+# )
 model.opt.timestep = 0.002
 data = mujoco.MjData(model)
 mujoco.mj_step(model, data)
