@@ -110,7 +110,7 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         self._floating_base_id = self._mj_model.joint(self.floating_base_name).id
 
         # self.all_joint_no_backlash_ids=jp.zeros(7+self._mj_model.nu)
-        all_idx=self.backlash_joint_ids+list(range(self._floating_base_qpos_addr,self._floating_base_qpos_addr+7))
+        all_idx=self.actuator_joint_ids+list(range(self._floating_base_qpos_addr,self._floating_base_qpos_addr+7))
         all_idx=jp.array(all_idx).sort()
         # self.all_joint_no_backlash_ids=[idx for idx in self.all_joint_ids if idx not in self.backlash_joint_ids]+list(range(self._floating_base_add,self._floating_base_add+7))
         self.all_joint_no_backlash_ids=[idx for idx in all_idx]
