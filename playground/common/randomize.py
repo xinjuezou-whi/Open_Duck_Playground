@@ -17,7 +17,7 @@
 
 import jax
 from mujoco import mjx
-
+import jax.numpy as jp
 
 FLOOR_GEOM_ID = 0
 TORSO_BODY_ID = 1
@@ -25,8 +25,8 @@ TORSO_BODY_ID = 1
 
 def domain_randomize(model: mjx.Model, rng: jax.Array):
 
-    dof_addr=jax.Array([6,8,10,12,14,16,18,20,22,24])
-    joint_addr=jax.Array([7,9,11,13,15,17,19,21,23,25])
+    dof_addr=jp.array([6,8,10,12,14,16,18,20,22,24])
+    joint_addr=jp.array([7,9,11,13,15,17,19,21,23,25])
 
     @jax.vmap
     def rand_dynamics(rng):
