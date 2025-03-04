@@ -73,7 +73,7 @@ def default_config() -> config_dict.ConfigDict:
         reward_config=config_dict.create(
             scales=config_dict.create(
                 tracking_lin_vel=2.5,
-                tracking_ang_vel=1.5,
+                tracking_ang_vel=2.5,
                 orientation=-0.5,
                 torques=-1.0e-3,
                 action_rate=-0.375,  # was -1.5
@@ -92,7 +92,7 @@ def default_config() -> config_dict.ConfigDict:
         ),
         lin_vel_x=[-0.1, 0.15],
         lin_vel_y=[-0.2, 0.2],
-        ang_vel_yaw=[-1.0, 1.0],  # [-1.0, 1.0]
+        ang_vel_yaw=[-0.5, 0.5],  # [-1.0, 1.0]
     )
 
 
