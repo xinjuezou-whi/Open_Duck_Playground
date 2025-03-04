@@ -30,7 +30,7 @@ linearVelocityScale = 1.0
 angularVelocityScale = 1.0
 dof_pos_scale = 1.0
 dof_vel_scale = 0.05
-action_scale = 0.5
+action_scale = 0.25
 
 PRM = PolyReferenceMotion(args.reference_data)
 
