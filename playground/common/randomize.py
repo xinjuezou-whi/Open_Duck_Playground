@@ -25,8 +25,14 @@ TORSO_BODY_ID = 1
 
 def domain_randomize(model: mjx.Model, rng: jax.Array):
 
-    dof_addr=jp.array([6,8,10,12,14,16,18,20,22,24])
-    joint_addr=jp.array([7,9,11,13,15,17,19,21,23,25])
+    # _dof_addr=jp.array([6,8,10,12,14,16,18,20,22,24])
+    # _joint_addr=jp.array([7,9,11,13,15,17,19,21,23,25])
+
+    dof_id=jp.array([idx for idx,fr in enumerate(model.dof_hasfrictionloss) if fr==True]) #for backlash joint we disable frictionloss
+    jnt_id=model.dof_jntid[dof_id]
+
+    dof_addr=jp.array([jadd for jadd in model.jnt_dofadr if jadd in dof_id])
+    joint_addr=model.jnt_qposadr[jnt_id]
 
     @jax.vmap
     def rand_dynamics(rng):

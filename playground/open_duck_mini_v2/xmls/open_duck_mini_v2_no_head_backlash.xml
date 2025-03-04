@@ -68,9 +68,12 @@
 
     <default class="backlash">
       <!-- +/- 0.5° of backlash -->
-      <joint damping="0.01" frictionloss="0.01" armature="0.01" limited="true" range="-0.008726646259971648 0.008726646259971648"/>
-      <!-- <joint damping="0.01" frictionloss="0.01" armature="0.01" limited="true" range="-0.00000001 0.00000001"/> -->
+      <!-- <joint damping="0.01" frictionloss="0" armature="0.01" limited="true" range="-0.008726646259971648 0.008726646259971648"/> -->
 
+      <!-- +/- 1° -->
+      <joint damping="0.01" frictionloss="0" armature="0.01" limited="true" range="-0.017453292519943295 0.017453292519943295"/>
+      <!-- <joint damping="0.01" frictionloss="0" armature="0.01" limited="true" range="-0.00000001 0.00000001"/> -->
+      <!-- <joint damping="0.01" frictionloss="0" armature="0.01" limited="true" range="-0.05 0.05"/> -->
     </default>
 
 
