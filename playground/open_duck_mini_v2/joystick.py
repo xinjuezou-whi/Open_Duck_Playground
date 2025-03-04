@@ -77,7 +77,7 @@ def default_config() -> config_dict.ConfigDict:
                 orientation=-0.5,
                 torques=-1.0e-3,
                 action_rate=-0.375,  # was -1.5
-                stand_still=-0.2,  # was -1.0 TODO try to relax this a bit ?
+                stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
             ),
@@ -92,7 +92,7 @@ def default_config() -> config_dict.ConfigDict:
         ),
         lin_vel_x=[-0.1, 0.15],
         lin_vel_y=[-0.2, 0.2],
-        ang_vel_yaw=[-0.5, 0.5],  # [-1.0, 1.0]
+        ang_vel_yaw=[-1.0, 1.0],  # [-1.0, 1.0]
     )
 
 
