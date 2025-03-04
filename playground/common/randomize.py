@@ -24,6 +24,10 @@ TORSO_BODY_ID = 1
 
 
 def domain_randomize(model: mjx.Model, rng: jax.Array):
+
+    dof_addr=jax.array([6,8,10,12,14,16,18,20,22,24])
+    joint_addr=jax.array([7,9,11,13,15,17,19,21,23,25])
+
     @jax.vmap
     def rand_dynamics(rng):
         # Floor friction: =U(0.4, 1.0).
@@ -34,17 +38,30 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
 
         # Scale static friction: *U(0.9, 1.1).
         rng, key = jax.random.split(rng)
-        frictionloss = model.dof_frictionloss[6:] * jax.random.uniform(
-            key, shape=(len(model.dof_frictionloss)-6,), minval=0.9, maxval=1.2  # was 0.9, 1.1
+        # frictionloss = model.dof_frictionloss[6:] * jax.random.uniform(
+        #     key, shape=(len(model.dof_frictionloss)-6,), minval=0.9, maxval=1.2  # was 0.9, 1.1
+        # )
+        # dof_frictionloss = model.dof_frictionloss.at[6:].set(frictionloss)
+
+        frictionloss = model.dof_frictionloss[dof_addr] * jax.random.uniform(
+            key, shape=(model.nu,), minval=0.9, maxval=1.2  # was 0.9, 1.1
         )
-        dof_frictionloss = model.dof_frictionloss.at[6:].set(frictionloss)
+        dof_frictionloss = model.dof_frictionloss.at[dof_addr].set(frictionloss)
+
+
 
         # Scale armature: *U(1.0, 1.05).
         rng, key = jax.random.split(rng)
-        armature = model.dof_armature[6:] * jax.random.uniform(
-            key, shape=(len(model.dof_frictionloss)-6,), minval=0.9, maxval=1.1  # was 1.0, 1.05
+        # armature = model.dof_armature[6:] * jax.random.uniform(
+        #     key, shape=(len(model.dof_frictionloss)-6,), minval=0.9, maxval=1.1  # was 1.0, 1.05
+        # )
+        # dof_armature = model.dof_armature.at[6:].set(armature)
+
+        armature = model.dof_armature[dof_addr] * jax.random.uniform(
+            key, shape=(model.nu,), minval=0.9, maxval=1.1  # was 1.0, 1.05
         )
-        dof_armature = model.dof_armature.at[6:].set(armature)
+        dof_armature = model.dof_armature.at[dof_addr].set(armature)
+
 
         # Jitter center of mass positiion: +U(-0.05, 0.05).
         rng, key = jax.random.split(rng)
@@ -66,9 +83,13 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
         # Jitter qpos0: +U(-0.05, 0.05).
         rng, key = jax.random.split(rng)
         qpos0 = model.qpos0
-        qpos0 = qpos0.at[7:].set(
-            qpos0[7:] + jax.random.uniform(key, shape=(len(model.qpos0)-7,), minval=-0.05, maxval=0.05)
+        # qpos0 = qpos0.at[7:].set(
+        #     qpos0[7:] + jax.random.uniform(key, shape=(len(model.qpos0)-7,), minval=-0.05, maxval=0.05)
+        # )
+        qpos0 = qpos0.at[joint_addr].set(
+            qpos0[joint_addr] + jax.random.uniform(key, shape=(model.nu,), minval=-0.05, maxval=0.05)
         )
+
 
         # # Randomize KP
         rng, key = jax.random.split(rng)
