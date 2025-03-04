@@ -110,7 +110,9 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         self._floating_base_id = self._mj_model.joint(self.floating_base_name).id
 
         # self.all_joint_no_backlash_ids=jp.zeros(7+self._mj_model.nu)
-        all_idx=self.actuator_joint_ids+list(range(self._floating_base_qpos_addr,self._floating_base_qpos_addr+7))
+        # all_idx=self.actuator_joint_ids+list(range(self._floating_base_qpos_addr,self._floating_base_qpos_addr+7))
+        # all_idx=jp.array(all_idx).sort()
+        all_idx=self.actuator_joint_ids+list([self.get_joint_id_from_name("floating_base")])
         all_idx=jp.array(all_idx).sort()
         # self.all_joint_no_backlash_ids=[idx for idx in self.all_joint_ids if idx not in self.backlash_joint_ids]+list(range(self._floating_base_add,self._floating_base_add+7))
         self.all_joint_no_backlash_ids=[idx for idx in all_idx]
@@ -121,7 +123,7 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         print(f"backlash joints: {self.backlash_joint_names}")
         print(f"actuator joints ids: {self.actuator_joint_ids}")
         print(f"actuator joints dict: {self.actuator_joint_dict}")
-
+        # print(f"all joint no backlash ids: {self.all_joint_no_backlash_ids}")
     def get_actuator_id_from_name(self, name: str) -> int:
         """Return the id of a specified actuator"""
         return mujoco.mj_name2id(self._mj_model, mujoco.mjtObj.mjOBJ_ACTUATOR, name)
