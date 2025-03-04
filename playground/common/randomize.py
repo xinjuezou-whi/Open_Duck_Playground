@@ -25,8 +25,8 @@ TORSO_BODY_ID = 1
 
 def domain_randomize(model: mjx.Model, rng: jax.Array):
 
-    dof_addr=jax.array([6,8,10,12,14,16,18,20,22,24])
-    joint_addr=jax.array([7,9,11,13,15,17,19,21,23,25])
+    dof_addr=jax.Array([6,8,10,12,14,16,18,20,22,24])
+    joint_addr=jax.Array([7,9,11,13,15,17,19,21,23,25])
 
     @jax.vmap
     def rand_dynamics(rng):
