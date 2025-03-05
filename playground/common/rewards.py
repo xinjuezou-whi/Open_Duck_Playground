@@ -96,7 +96,7 @@ def cost_stand_still(
     qvel: jax.Array,
     default_pose: jax.Array,
 ) -> jax.Array:
-    cmd_norm = jp.linalg.norm(commands)
+    cmd_norm = jp.linalg.norm(commands[:3])
     pose_cost = jp.sum(jp.abs(qpos - default_pose))
     vel_cost = jp.sum(jp.abs(qvel))
     return jp.nan_to_num(pose_cost + vel_cost) * (cmd_norm < 0.01)
@@ -127,7 +127,7 @@ def reward_imitation(
         return jp.nan_to_num(0.0)
 
     # TODO don't reward for moving when the command is zero.
-    cmd_norm = jp.linalg.norm(cmd)
+    cmd_norm = jp.linalg.norm(cmd[:3])
 
     w_torso_pos = 1.0
     w_torso_orientation = 1.0
@@ -337,7 +337,7 @@ def reward_feet_air_time(
     threshold_min: float = 0.1,  # 0.2
     threshold_max: float = 0.5,
 ) -> jax.Array:
-    cmd_norm = jp.linalg.norm(commands)
+    cmd_norm = jp.linalg.norm(commands[:3])
     air_time = (air_time - threshold_min) * first_contact
     air_time = jp.clip(air_time, max=threshold_max - threshold_min)
     reward = jp.sum(air_time)
