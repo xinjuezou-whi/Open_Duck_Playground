@@ -81,7 +81,7 @@ def default_config() -> config_dict.ConfigDict:
                 stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
-                head_pos=-5.0
+                head_pos=-5.0,
             ),
             tracking_sigma=0.01,  # was working at 0.01
             max_foot_height=0.03,  # 0.1,
@@ -99,6 +99,7 @@ def default_config() -> config_dict.ConfigDict:
         head_pitch_range=[-0.78, 0.78],
         head_yaw_range=[-2.7, 2.7],
         head_roll_range=[-0.5, 0.5],
+        head_range_factor=0.3,  # to make it easier
     )
 
 
@@ -646,26 +647,26 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
         neck_pitch = jax.random.uniform(
             rng5,
-            minval=self._config.neck_pitch_range[0],
-            maxval=self._config.neck_pitch_range[1],
+            minval=self._config.neck_pitch_range[0] * self._config.head_range_factor,
+            maxval=self._config.neck_pitch_range[1] * self._config.head_range_factor,
         )
 
         head_pitch = jax.random.uniform(
             rng6,
-            minval=self._config.head_pitch_range[0],
-            maxval=self._config.head_pitch_range[1],
+            minval=self._config.head_pitch_range[0] * self._config.head_range_factor,
+            maxval=self._config.head_pitch_range[1] * self._config.head_range_factor,
         )
 
         head_yaw = jax.random.uniform(
             rng7,
-            minval=self._config.head_yaw_range[0],
-            maxval=self._config.head_yaw_range[1],
+            minval=self._config.head_yaw_range[0] * self._config.head_range_factor,
+            maxval=self._config.head_yaw_range[1] * self._config.head_range_factor,
         )
 
         head_roll = jax.random.uniform(
             rng8,
-            minval=self._config.head_roll_range[0],
-            maxval=self._config.head_roll_range[1],
+            minval=self._config.head_roll_range[0] * self._config.head_range_factor,
+            maxval=self._config.head_roll_range[1] * self._config.head_range_factor,
         )
 
         # With 10% chance, set everything to zero.

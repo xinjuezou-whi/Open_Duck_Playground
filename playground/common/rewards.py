@@ -258,15 +258,21 @@ def reward_alive() -> jax.Array:
 
 def cost_head_pos(
     joints_qpos: jax.Array,
+    joints_qvel: jax.Array,
     cmd: jax.Array,
 ) -> jax.Array:
 
     head_cmd = cmd[3:]
     head_pos = joints_qpos[5:9]
+    head_vel = joints_qvel[5:9]
+
+    target_head_qvel = jp.zeros_like(head_cmd)
 
     head_pos_error = jp.sum(jp.square(head_pos - head_cmd))
 
-    return jp.nan_to_num(head_pos_error)
+    head_vel_error = jp.sum(jp.square(head_vel - target_head_qvel))
+
+    return jp.nan_to_num(head_pos_error + head_vel_error)
 
 
 # FIXME
