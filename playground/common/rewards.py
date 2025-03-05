@@ -97,8 +97,8 @@ def cost_stand_still(
     default_pose: jax.Array,
 ) -> jax.Array:
     cmd_norm = jp.linalg.norm(commands[:3])
-    pose_cost = jp.sum(jp.abs(qpos - default_pose))
-    vel_cost = jp.sum(jp.abs(qvel))
+    pose_cost = jp.sum(jp.abs(qpos[5:9] - default_pose[5:9]))  # ignore head
+    vel_cost = jp.sum(jp.abs(qvel[5:9]))  # ignore head
     return jp.nan_to_num(pose_cost + vel_cost) * (cmd_norm < 0.01)
 
 
