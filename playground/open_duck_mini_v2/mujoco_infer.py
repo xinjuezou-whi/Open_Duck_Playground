@@ -59,12 +59,12 @@ init_pos = np.array(
     ]
 )
 
-model = mujoco.MjModel.from_xml_path(
-    "playground/open_duck_mini_v2/xmls/scene_mjx_flat_terrain.xml"
-)
 # model = mujoco.MjModel.from_xml_path(
-#     "playground/open_duck_mini_v2/xmls/scene_mjx_rough_terrain.xml"
+#     "playground/open_duck_mini_v2/xmls/scene_mjx_flat_terrain.xml"
 # )
+model = mujoco.MjModel.from_xml_path(
+    "playground/open_duck_mini_v2/xmls/scene_mjx_rough_terrain.xml"
+)
 model.opt.timestep = 0.002
 data = mujoco.MjData(model)
 mujoco.mj_step(model, data)
@@ -78,7 +78,7 @@ COMMANDS_RANGE_THETA = [-0.5, 0.5]  # [-1.0, 1.0]
 last_action = np.zeros(NUM_DOFS)
 last_last_action = np.zeros(NUM_DOFS)
 last_last_last_action = np.zeros(NUM_DOFS)
-commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0]
+commands = [0.0, 0.0, 0.0]#, 0.0, 0.0, 0.5, 0.0]
 decimation = 10
 data.qpos[3 : 3 + 4] = [1, 0, 0.0, 0]
 

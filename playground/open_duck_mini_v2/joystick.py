@@ -108,7 +108,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
     def __init__(
         self,
-        task: str = "flat_terrain",
+        task: str = "rough_terrain",
         config: config_dict.ConfigDict = default_config(),
         config_overrides: Optional[Dict[str, Union[str, int, list[Any]]]] = None,
     ):
