@@ -97,8 +97,10 @@ def cost_stand_still(
     default_pose: jax.Array,
 ) -> jax.Array:
     cmd_norm = jp.linalg.norm(commands[:3])
-    pose_cost = jp.sum(jp.abs(qpos[5:9] - default_pose[5:9]))  # ignore head
-    vel_cost = jp.sum(jp.abs(qvel[5:9]))  # ignore head
+    pose_cost = jp.sum(jp.abs(qpos - default_pose))
+    vel_cost = jp.sum(jp.abs(qvel))
+    # pose_cost = jp.sum(jp.abs(qpos[5:9] - default_pose[5:9]))  # ignore head
+    # vel_cost = jp.sum(jp.abs(qvel[5:9]))  # ignore head
     return jp.nan_to_num(pose_cost + vel_cost) * (cmd_norm < 0.01)
 
 
@@ -182,15 +184,14 @@ def reward_imitation(
     base_ang_vel = base_qvel[3:6]
 
     ref_joint_pos = reference_frame[joint_pos_slice_start:joint_pos_slice_end]
-
-    # remove the neck and head
-    ref_joint_pos = jp.concatenate([ref_joint_pos[:5], ref_joint_pos[11:]])
-    joint_pos = jp.concatenate([joints_qpos[:5], joints_qpos[9:]])
+    # remove the antennas
+    ref_joint_pos = jp.concatenate([ref_joint_pos[:9], ref_joint_pos[11:]])
+    joint_pos = joints_qpos
 
     ref_joint_vels = reference_frame[joint_vels_slice_start:joint_vels_slice_end]
     # remove the neck and head
-    ref_joint_vels = jp.concatenate([ref_joint_vels[:5], ref_joint_vels[11:]])
-    joint_vel = jp.concatenate([joints_qvel[:5], joints_qvel[9:]])
+    ref_joint_vels = jp.concatenate([ref_joint_vels[:0], ref_joint_vels[11:]])
+    joint_vel = joints_qvel
 
     # ref_left_toe_pos = reference_frame[left_toe_pos_slice_start:left_toe_pos_slice_end]
     # ref_right_toe_pos = reference_frame[right_toe_pos_slice_start:right_toe_pos_slice_end]

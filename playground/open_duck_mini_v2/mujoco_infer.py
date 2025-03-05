@@ -78,7 +78,7 @@ COMMANDS_RANGE_THETA = [-0.5, 0.5]  # [-1.0, 1.0]
 last_action = np.zeros(NUM_DOFS)
 last_last_action = np.zeros(NUM_DOFS)
 last_last_last_action = np.zeros(NUM_DOFS)
-commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0]
 decimation = 10
 data.qpos[3 : 3 + 4] = [1, 0, 0.0, 0]
 
