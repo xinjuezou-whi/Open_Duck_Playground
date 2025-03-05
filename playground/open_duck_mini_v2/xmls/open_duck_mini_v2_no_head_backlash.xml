@@ -56,7 +56,7 @@
   </asset>
   <default>
     <geom contype="0" conaffinity="0"/>
-    <joint damping="0.60" frictionloss="0.08" armature="0.027"/>
+    <joint damping="0.60" frictionloss="0.052" armature="0.028"/>
     <position kp="17.8" kv="0.0" forcerange="-3.35 3.35"/> 
 
     <default class="backlash">
