@@ -8,14 +8,13 @@ import argparse
 from etils import epath
 from playground.common.onnx_infer import OnnxInfer
 from playground.common.poly_reference_motion_numpy import PolyReferenceMotion
+
 # from playground.open_duck_mini_v2 import constants
 from playground.open_duck_mini_v2 import base
 
 
-
-
-class MjInfer():
-    def __init__(self, model_path:str, reference_data:str, onnx_model_path:str):
+class MjInfer:
+    def __init__(self, model_path: str, reference_data: str, onnx_model_path: str):
         self.model = mujoco.MjModel.from_xml_string(
             epath.Path(model_path).read_text(), assets=base.get_assets()
         )
@@ -29,20 +28,29 @@ class MjInfer():
 
         self.PRM = PolyReferenceMotion(reference_data)
 
-
         NUM_DOFS = self.model.nu
-        self.floating_base_name= [self.model.jnt(k).name for k in range(0, self.model.njnt) if self.model.jnt(k).type == 0][0] #assuming only one floating object!
+        self.floating_base_name = [
+            self.model.jnt(k).name
+            for k in range(0, self.model.njnt)
+            if self.model.jnt(k).type == 0
+        ][
+            0
+        ]  # assuming only one floating object!
         self.actuator_names = [
             self.model.actuator(k).name for k in range(0, self.model.nu)
         ]  # will be useful to get only the actuators we care about
-        self.joint_names = [ #njnt = all joints (including floating base, actuators and backlash joints)
+        self.joint_names = [  # njnt = all joints (including floating base, actuators and backlash joints)
             self.model.jnt(k).name for k in range(0, self.model.njnt)
         ]  # all the joint (including the backlash joints)
         self.backlash_joint_names = [
-            j for j in self.joint_names if j not in self.actuator_names and j not in self.floating_base_name
+            j
+            for j in self.joint_names
+            if j not in self.actuator_names and j not in self.floating_base_name
         ]  # only the dummy backlash joint
         self.all_joint_ids = [self.get_joint_id_from_name(n) for n in self.joint_names]
-        self.all_joint_qpos_addr = [self.get_joint_addr_from_name(n) for n in self.joint_names]
+        self.all_joint_qpos_addr = [
+            self.get_joint_addr_from_name(n) for n in self.joint_names
+        ]
 
         self.actuator_joint_ids = [
             self.get_joint_id_from_name(n) for n in self.actuator_names
@@ -51,16 +59,20 @@ class MjInfer():
             self.get_joint_addr_from_name(n) for n in self.actuator_names
         ]
 
-        self.backlash_joint_ids=[
+        self.backlash_joint_ids = [
             self.get_joint_id_from_name(n) for n in self.backlash_joint_names
         ]
 
-        self.backlash_joint_qpos_addr=[
+        self.backlash_joint_qpos_addr = [
             self.get_joint_addr_from_name(n) for n in self.backlash_joint_names
         ]
 
-        self.all_qvel_addr=np.array([self.model.jnt_dofadr[jad] for jad in self.all_joint_ids])
-        self.actuator_qvel_addr=np.array([self.model.jnt_dofadr[jad] for jad in self.actuator_joint_ids])
+        self.all_qvel_addr = np.array(
+            [self.model.jnt_dofadr[jad] for jad in self.all_joint_ids]
+        )
+        self.actuator_qvel_addr = np.array(
+            [self.model.jnt_dofadr[jad] for jad in self.actuator_joint_ids]
+        )
 
         self.actuator_joint_dict = {
             n: self.get_joint_id_from_name(n) for n in self.actuator_names
@@ -81,11 +93,13 @@ class MjInfer():
         self._floating_base_id = self.model.joint(self.floating_base_name).id
 
         # self.all_joint_no_backlash_ids=np.zeros(7+self.model.nu)
-        all_idx=self.backlash_joint_ids+list(range(self._floating_base_qpos_addr,self._floating_base_qpos_addr+7))
+        all_idx = self.backlash_joint_ids + list(
+            range(self._floating_base_qpos_addr, self._floating_base_qpos_addr + 7)
+        )
         all_idx.sort()
 
         # self.all_joint_no_backlash_ids=[idx for idx in self.all_joint_ids if idx not in self.backlash_joint_ids]+list(range(self._floating_base_add,self._floating_base_add+7))
-        self.all_joint_no_backlash_ids=[idx for idx in all_idx]
+        self.all_joint_no_backlash_ids = [idx for idx in all_idx]
 
         self.model.opt.timestep = 0.002
         self.data = mujoco.MjData(self.model)
@@ -95,7 +109,7 @@ class MjInfer():
 
         self.COMMANDS_RANGE_X = [-0.1, 0.15]
         self.COMMANDS_RANGE_Y = [-0.2, 0.2]
-        self.COMMANDS_RANGE_THETA = [-0.5, 0.5] # [-1.0, 1.0]
+        self.COMMANDS_RANGE_THETA = [-0.5, 0.5]  # [-1.0, 1.0]
 
         self.last_action = np.zeros(NUM_DOFS)
         self.last_last_action = np.zeros(NUM_DOFS)
@@ -110,30 +124,30 @@ class MjInfer():
             "home"
         ).ctrl  # ctrl of all the actual joints (no floating base and no backlash)
 
-
-        #orientation
+        # orientation
         # data.qpos[3 : 3 + 4] = [1, 0, 0.0, 0]
         # data.qpos[7:] = init_pos
-        self.data.qpos[:]=self.model.keyframe("home").qpos
+        self.data.qpos[:] = self.model.keyframe("home").qpos
         self.data.ctrl[:] = self.default_actuator
 
         self.gyro_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SENSOR, "gyro")
         self.gyro_dimensions = 3
-        self.linvel_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SENSOR, "local_linvel")
+        self.linvel_id = mujoco.mj_name2id(
+            self.model, mujoco.mjtObj.mjOBJ_SENSOR, "local_linvel"
+        )
         self.linvel_dimensions = 3
 
-
-        self.imu_site_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "imu")
+        self.imu_site_id = mujoco.mj_name2id(
+            self.model, mujoco.mjtObj.mjOBJ_SITE, "imu"
+        )
 
         self.imitation_i = 0
         self.saved_obs = []
-
 
         print(f"joint names: {self.joint_names}")
         print(f"actuator names: {self.actuator_names}")
         print(f"backlash joint names: {self.backlash_joint_names}")
         # print(f"actual joints idx: {self.get_actual_joints_idx()}")
-
 
     def get_actuator_id_from_name(self, name: str) -> int:
         """Return the id of a specified actuator"""
@@ -143,7 +157,6 @@ class MjInfer():
         """Return the id of a specified joint"""
         return mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, name)
 
-
     def get_joint_addr_from_name(self, name: str) -> int:
         """Return the address of a specified joint"""
         return self.model.joint(name).qposadr
@@ -152,8 +165,9 @@ class MjInfer():
         """Return the id of a specified dof"""
         return mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_DOF, name)
 
-
-    def get_actuator_joint_qpos_from_name(self, data: np.ndarray, name: str) -> np.ndarray:
+    def get_actuator_joint_qpos_from_name(
+        self, data: np.ndarray, name: str
+    ) -> np.ndarray:
         """Return the qpos of a given actual joint"""
         addr = self.model.jnt_qposadr[self.actuator_joint_dict[name]]
         return data[addr]
@@ -165,19 +179,26 @@ class MjInfer():
         )
         return addr
 
-    def get_floating_base_qpos(self, data:np.ndarray) -> np.ndarray:
-        return data[self._floating_base_qpos_addr:self._floating_base_qvel_addr+7]
+    def get_floating_base_qpos(self, data: np.ndarray) -> np.ndarray:
+        return data[self._floating_base_qpos_addr : self._floating_base_qvel_addr + 7]
 
-    def get_floating_base_qvel(self, data:np.ndarray) -> np.ndarray:
-        return data[self._floating_base_qvel_addr:self._floating_base_qvel_addr+6]
+    def get_floating_base_qvel(self, data: np.ndarray) -> np.ndarray:
+        return data[self._floating_base_qvel_addr : self._floating_base_qvel_addr + 6]
 
-
-    def set_floating_base_qpos(self, new_qpos:np.ndarray, qpos:np.ndarray) -> np.ndarray:
-        qpos[self._floating_base_qpos_addr:self._floating_base_qpos_addr+7]=new_qpos
+    def set_floating_base_qpos(
+        self, new_qpos: np.ndarray, qpos: np.ndarray
+    ) -> np.ndarray:
+        qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 7] = (
+            new_qpos
+        )
         return qpos
 
-    def set_floating_base_qvel(self, new_qvel:np.ndarray, qvel:np.ndarray) -> np.ndarray:
-        qvel[self._floating_base_qvel_addr:self._floating_base_qvel_addr+6]=new_qvel
+    def set_floating_base_qvel(
+        self, new_qvel: np.ndarray, qvel: np.ndarray
+    ) -> np.ndarray:
+        qvel[self._floating_base_qvel_addr : self._floating_base_qvel_addr + 6] = (
+            new_qvel
+        )
         return qvel
 
     def exclude_backlash_joints_addr(self) -> np.ndarray:
@@ -186,7 +207,6 @@ class MjInfer():
             [self.model.jnt_qposadr[idx] for idx in self.all_joint_no_backlash_ids]
         )
         return addr
-
 
     def get_all_joints_addr(self) -> np.ndarray:
         """Return the all the idx of all joints"""
@@ -197,18 +217,22 @@ class MjInfer():
         """Return the all the qpos of actual joints"""
         return data[self.get_actuator_joints_addr()]
 
-    def set_actuator_joints_qpos(self, new_qpos: np.ndarray, qpos: np.ndarray) -> np.ndarray:
+    def set_actuator_joints_qpos(
+        self, new_qpos: np.ndarray, qpos: np.ndarray
+    ) -> np.ndarray:
         """Set the qpos only for the actual joints (omit the backlash joint)"""
-        qpos[self.get_actuator_joints_addr()]=new_qpos
+        qpos[self.get_actuator_joints_addr()] = new_qpos
         return qpos
 
     def get_actuator_joints_qvel(self, data: np.ndarray) -> np.ndarray:
         """Return the all the qvel of actual joints"""
         return data[self.actuator_qvel_addr]
 
-    def set_actuator_joints_qvel(self, new_qvel: np.ndarray, qvel: np.ndarray) -> np.ndarray:
+    def set_actuator_joints_qvel(
+        self, new_qvel: np.ndarray, qvel: np.ndarray
+    ) -> np.ndarray:
         """Set the qvel only for the actual joints (omit the backlash joint)"""
-        qvel[self.actuator_qvel_addr]=new_qvel
+        qvel[self.actuator_qvel_addr] = new_qvel
         return qvel
 
     def get_all_joints_qpos(self, data: np.ndarray) -> np.ndarray:
@@ -223,29 +247,25 @@ class MjInfer():
         """Return the all the qpos of actual joints with the floating base"""
         return data[self.exclude_backlash_joints_addr()]
 
-    def set_complete_qpos_from_joints(self, no_backlash_qpos: np.ndarray, full_qpos: np.ndarray) -> np.ndarray:
+    def set_complete_qpos_from_joints(
+        self, no_backlash_qpos: np.ndarray, full_qpos: np.ndarray
+    ) -> np.ndarray:
         """In the case of backlash joints, we want to ignore them (remove them) but we still need to set the complete state incuding them"""
-        full_qpos[self.exclude_backlash_joints_addr()]=no_backlash_qpos
+        full_qpos[self.exclude_backlash_joints_addr()] = no_backlash_qpos
         return np.array(full_qpos)
-
-
 
     def get_sensor(self, data, name, dimensions):
         i = self.model.sensor_name2id(name)
         return data.sensordata[i : i + dimensions]
 
-
     def get_gyro(self, data):
         return data.sensordata[self.gyro_id : self.gyro_id + self.gyro_dimensions]
-
 
     def get_linvel(self, data):
         return data.sensordata[self.linvel_id : self.linvel_id + self.linvel_dimensions]
 
-
     def get_gravity(self, data):
         return data.site_xmat[self.imu_site_id].reshape((3, 3)).T @ np.array([0, 0, -1])
-
 
     def check_contact(self, data, body1_name, body2_name):
         body1_id = data.body(body1_name).id
@@ -268,14 +288,16 @@ class MjInfer():
 
         return False
 
-
     def get_feet_contacts(self, data):
         left_contact = self.check_contact(data, "foot_assembly", "floor")
-        right_contact = self.check_contact(data,  "foot_assembly_2", "floor")
+        right_contact = self.check_contact(data, "foot_assembly_2", "floor")
         return left_contact, right_contact
 
-    def get_obs(self,
-        data, last_action, command  # , qvel_history, qpos_error_history, gravity_history
+    def get_obs(
+        self,
+        data,
+        last_action,
+        command,  # , qvel_history, qpos_error_history, gravity_history
     ):
         gravity = self.get_gravity(data)
         joint_angles = self.get_actuator_joints_qpos(data.qpos)
@@ -301,34 +323,36 @@ class MjInfer():
 
         return obs
 
-    def key_callback(self,keycode):
+    def key_callback(self, keycode):
         print(f"key: {keycode}")
         lin_vel_x = 0
         lin_vel_y = 0
         ang_vel = 0
-        if keycode==265: #arrow up
+        if keycode == 265:  # arrow up
             lin_vel_x = self.COMMANDS_RANGE_X[1]
-        if keycode==264: #arrow down
+        if keycode == 264:  # arrow down
             lin_vel_x = self.COMMANDS_RANGE_X[0]
-        if keycode==263: #arrow left
+        if keycode == 263:  # arrow left
             lin_vel_y = self.COMMANDS_RANGE_Y[1]
-        if keycode==262: #arrow right
+        if keycode == 262:  # arrow right
             lin_vel_y = self.COMMANDS_RANGE_Y[0]
-        if keycode==81: #a
+        if keycode == 81:  # a
             ang_vel = self.COMMANDS_RANGE_THETA[1]
-        if keycode==69: #e
+        if keycode == 69:  # e
             ang_vel = self.COMMANDS_RANGE_THETA[0]
 
         self.commands[0] = lin_vel_x
         self.commands[1] = lin_vel_y
         self.commands[2] = ang_vel
 
-
-
     def run(self):
         try:
             with mujoco.viewer.launch_passive(
-                self.model, self.data, show_left_ui=False, show_right_ui=False, key_callback=self.key_callback
+                self.model,
+                self.data,
+                show_left_ui=False,
+                show_right_ui=False,
+                key_callback=self.key_callback,
             ) as viewer:
                 counter = 0
                 while True:
@@ -341,7 +365,9 @@ class MjInfer():
 
                     if counter % self.decimation == 0:
                         self.imitation_i += 1
-                        self.imitation_i = self.imitation_i % self.PRM.nb_steps_in_period
+                        self.imitation_i = (
+                            self.imitation_i % self.PRM.nb_steps_in_period
+                        )
                         obs = self.get_obs(
                             self.data,
                             self.last_action,
@@ -359,23 +385,32 @@ class MjInfer():
 
                     viewer.sync()
 
-                    time_until_next_step = self.model.opt.timestep - (time.time() - step_start)
+                    time_until_next_step = self.model.opt.timestep - (
+                        time.time() - step_start
+                    )
                     if time_until_next_step > 0:
                         time.sleep(time_until_next_step)
         except KeyboardInterrupt:
             pickle.dump(self.saved_obs, open("mujoco_saved_obs.pkl", "wb"))
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--onnx_model_path", type=str, required=True)
     # parser.add_argument("-k", action="store_true", default=False)
-    parser.add_argument("--reference_data", type=str, default="playground/open_duck_mini_v2/data/polynomial_coefficients.pkl")
-    parser.add_argument("--model_path", type=str, default="playground/open_duck_mini_v2/xmls/scene_mjx_flat_terrain.xml")
+    parser.add_argument(
+        "--reference_data",
+        type=str,
+        default="playground/open_duck_mini_v2/data/polynomial_coefficients.pkl",
+    )
+    parser.add_argument(
+        "--model_path",
+        type=str,
+        default="playground/open_duck_mini_v2/xmls/scene_mjx_flat_terrain.xml",
+    )
 
     args = parser.parse_args()
 
-    mjinfer=MjInfer(args.model_path, args.reference_data, args.onnx_model_path)
+    mjinfer = MjInfer(args.model_path, args.reference_data, args.onnx_model_path)
     mjinfer.run()
