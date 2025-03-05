@@ -81,7 +81,7 @@ def default_config() -> config_dict.ConfigDict:
                 stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
-                head_pos=-5.0,
+                head_pos=-2.0,
             ),
             tracking_sigma=0.01,  # was working at 0.01
             max_foot_height=0.03,  # 0.1,
