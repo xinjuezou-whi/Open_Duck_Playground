@@ -41,10 +41,10 @@ init_pos = np.array(
         -0.63,
         1.368,
         -0.784,
-        # 0.0,
-        # 0,
-        # 0,
-        # 0,
+        0.0,
+        0,
+        0,
+        0,
         # 0,
         # 0,
         -0.003,
@@ -225,7 +225,7 @@ try:
                 last_last_last_action = last_last_action.copy()
                 last_last_action = last_action.copy()
                 last_action = action.copy()
-                # action = np.zeros(10)
+                # action = np.zeros(14)
                 action = init_pos + action * action_scale
                 data.ctrl = action.copy()
 
