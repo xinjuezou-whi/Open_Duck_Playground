@@ -183,24 +183,14 @@ def reward_imitation(
 
     ref_joint_pos = reference_frame[joint_pos_slice_start:joint_pos_slice_end]
 
-    head_ref_pos = cmd[3:]
     # remove the neck and head
-    ref_joint_pos = jp.concatenate(
-        [ref_joint_pos[:5], head_ref_pos, ref_joint_pos[11:]]
-    )
-    # remove the antennas
-    # ref_joint_pos = jp.concatenate([ref_joint_pos[:9], ref_joint_pos[11:]])
-    joint_pos = joints_qpos
+    ref_joint_pos = jp.concatenate([ref_joint_pos[:5], ref_joint_pos[11:]])
+    joint_pos = jp.concatenate([joints_qpos[:5], joints_qpos[9:]])
 
-    head_ref_vel = jp.zeros_like(cmd[3:]) # zero velocity
     ref_joint_vels = reference_frame[joint_vels_slice_start:joint_vels_slice_end]
     # remove the neck and head
-    ref_joint_vels = jp.concatenate(
-        [ref_joint_vels[:5], head_ref_vel, ref_joint_vels[11:]]
-    )
-    # remove the antennas
-    # ref_joint_vels = jp.concatenate([ref_joint_vels[:9], ref_joint_vels[11:]])
-    joint_vel = joints_qvel
+    ref_joint_vels = jp.concatenate([ref_joint_vels[:5], ref_joint_vels[11:]])
+    joint_vel = jp.concatenate([joints_qvel[:5], joints_qvel[9:]])
 
     # ref_left_toe_pos = reference_frame[left_toe_pos_slice_start:left_toe_pos_slice_end]
     # ref_right_toe_pos = reference_frame[right_toe_pos_slice_start:right_toe_pos_slice_end]
@@ -264,6 +254,19 @@ def reward_alive() -> jax.Array:
 
 
 # Pose-related rewards.
+
+
+def cost_head_pos(
+    joints_qpos: jax.Array,
+    cmd: jax.Array,
+) -> jax.Array:
+
+    head_cmd = cmd[3:]
+    head_pos = joints_qpos[5:9]
+
+    head_pos_error = jp.sum(jp.square(head_pos - head_cmd))
+
+    return jp.nan_to_num(head_pos_error)
 
 
 # FIXME
