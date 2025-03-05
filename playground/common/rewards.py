@@ -190,7 +190,7 @@ def reward_imitation(
 
     ref_joint_vels = reference_frame[joint_vels_slice_start:joint_vels_slice_end]
     # remove the neck and head
-    ref_joint_vels = jp.concatenate([ref_joint_vels[:0], ref_joint_vels[11:]])
+    ref_joint_vels = jp.concatenate([ref_joint_vels[:9], ref_joint_vels[11:]])
     joint_vel = joints_qvel
 
     # ref_left_toe_pos = reference_frame[left_toe_pos_slice_start:left_toe_pos_slice_end]
