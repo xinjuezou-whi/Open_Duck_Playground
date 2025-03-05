@@ -12,10 +12,14 @@ from playground.common.poly_reference_motion_numpy import PolyReferenceMotion
 parser = argparse.ArgumentParser()
 parser.add_argument("-o", "--onnx_model_path", type=str, required=True)
 parser.add_argument("-k", action="store_true", default=False)
-parser.add_argument("--reference_data", type=str, default="playground/open_duck_mini_v2/data/polynomial_coefficients.pkl")
+parser.add_argument(
+    "--reference_data",
+    type=str,
+    default="playground/open_duck_mini_v2/data/polynomial_coefficients.pkl",
+)
 args = parser.parse_args()
 
-NUM_DOFS = 10
+NUM_DOFS = 14
 
 if args.k:
     import pygame
@@ -69,7 +73,7 @@ policy = OnnxInfer(args.onnx_model_path, awd=True)
 
 COMMANDS_RANGE_X = [-0.1, 0.15]
 COMMANDS_RANGE_Y = [-0.2, 0.2]
-COMMANDS_RANGE_THETA = [-0.5, 0.5] # [-1.0, 1.0]
+COMMANDS_RANGE_THETA = [-0.5, 0.5]  # [-1.0, 1.0]
 
 last_action = np.zeros(NUM_DOFS)
 last_last_action = np.zeros(NUM_DOFS)
@@ -136,6 +140,7 @@ def get_feet_contacts():
     left_contact = check_contact(data, model, "foot_assembly", "floor")
     right_contact = check_contact(data, model, "foot_assembly_2", "floor")
     return left_contact, right_contact
+
 
 def get_obs(
     data, last_action, command  # , qvel_history, qpos_error_history, gravity_history

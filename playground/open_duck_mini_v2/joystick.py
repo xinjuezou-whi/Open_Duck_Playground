@@ -93,6 +93,10 @@ def default_config() -> config_dict.ConfigDict:
         lin_vel_x=[-0.1, 0.15],
         lin_vel_y=[-0.2, 0.2],
         ang_vel_yaw=[-0.5, 0.5],  # [-1.0, 1.0]
+        neck_pitch_range=[-0.34, 1.1],
+        head_pitch_range=[-0.78, 0.78],
+        head_yaw_range=[-2.7, 2.7],
+        head_roll_range=[-0.5, 0.5],
     )
 
 
@@ -621,7 +625,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         return ret
 
     def sample_command(self, rng: jax.Array) -> jax.Array:
-        rng1, rng2, rng3, rng4 = jax.random.split(rng, 4)
+        rng1, rng2, rng3, rng4, rng5, rng6, rng7, rng8 = jax.random.split(rng, 8)
 
         lin_vel_x = jax.random.uniform(
             rng1, minval=self._config.lin_vel_x[0], maxval=self._config.lin_vel_x[1]
@@ -635,9 +639,43 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             maxval=self._config.ang_vel_yaw[1],
         )
 
+        neck_pitch = jax.random.uniform(
+            rng5,
+            minval=self._config.neck_pitch_range[0],
+            maxval=self._config.neck_pitch_range[1],
+        )
+
+        head_pitch = jax.random.uniform(
+            rng6,
+            minval=self._config.head_pitch_range[0],
+            maxval=self._config.head_pitch_range[1],
+        )
+
+        head_yaw = jax.random.uniform(
+            rng7,
+            minval=self._config.head_yaw_range[0],
+            maxval=self._config.head_yaw_range[1],
+        )
+
+        head_roll = jax.random.uniform(
+            rng8,
+            minval=self._config.head_roll_range[0],
+            maxval=self._config.head_roll_range[1],
+        )
+
         # With 10% chance, set everything to zero.
         return jp.where(
             jax.random.bernoulli(rng4, p=0.1),
-            jp.zeros(3),
-            jp.hstack([lin_vel_x, lin_vel_y, ang_vel_yaw]),
+            jp.zeros(7),
+            jp.hstack(
+                [
+                    lin_vel_x,
+                    lin_vel_y,
+                    ang_vel_yaw,
+                    neck_pitch,
+                    head_pitch,
+                    head_yaw,
+                    head_roll,
+                ]
+            ),
         )
