@@ -474,12 +474,12 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
         # Handling backlash
         joint_angles = self.get_actuator_joints_qpos(data.qpos)
-        # joint_backlash = self.get_actuator_backlash_qpos(data.qpos)
+        joint_backlash = self.get_actuator_backlash_qpos(data.qpos)
 
-        # if joint_backlash.shape != joint_angles.shape:
-        #     joint_backlash = jp.zeros_like(joint_angles)
+        for i in self.backlash_idx_to_add:
+            joint_backlash = jp.insert(joint_backlash, i, 0)
 
-        # joint_angles = joint_angles + joint_backlash
+        joint_angles = joint_angles + joint_backlash
 
         info["rng"], noise_rng = jax.random.split(info["rng"])
         noisy_joint_angles = (

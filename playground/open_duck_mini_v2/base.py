@@ -118,6 +118,12 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         self.all_joint_no_backlash_ids=[idx for idx in all_idx]
         # print(f"ALL: {self.all_joint_no_backlash_ids} back_id: {self.backlash_joint_ids} base_id: {list(range(self._floating_base_qpos_addr,self._floating_base_qpos_addr+7))}")
 
+        self.backlash_idx_to_add = []
+
+        for i, actuator_name in enumerate(self.actuator_names):
+            if actuator_name + "_backlash" not in self.backlash_joint_names
+                self.backlash_idx_to_add.append(i)
+
         print(f"actuators: {self.actuator_names}")
         print(f"joints: {self.joint_names}")
         print(f"backlash joints: {self.backlash_joint_names}")
