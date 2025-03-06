@@ -69,7 +69,7 @@
       <!-- <joint damping="0.01" frictionloss="0" armature="0.01" limited="true" range="-0.05 0.05"/> -->
     </default>
       <default class="head_backlash">
-      <joint damping="0.01" frictionloss="0" armature="0.01" limited="true" range="0.0 0.0"/>
+      <joint damping="0.01" frictionloss="0" armature="0.01" limited="true" range="-0.000001 0.000001"/>
     </default>
 
 
