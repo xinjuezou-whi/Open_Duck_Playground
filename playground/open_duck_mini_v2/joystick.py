@@ -75,7 +75,7 @@ def default_config() -> config_dict.ConfigDict:
         reward_config=config_dict.create(
             scales=config_dict.create(
                 tracking_lin_vel=2.5,
-                tracking_ang_vel=2.5,
+                tracking_ang_vel=5.0,
                 orientation=-0.5,
                 torques=-1.0e-3,
                 action_rate=-0.375,  # was -1.5
@@ -85,8 +85,6 @@ def default_config() -> config_dict.ConfigDict:
                 # head_pos=-2.0,
             ),
             tracking_sigma=0.01,  # was working at 0.01
-            max_foot_height=0.03,  # 0.1,
-            base_height_target=0.15,  # 0.5,
         ),
         push_config=config_dict.create(
             enable=True,
@@ -96,6 +94,7 @@ def default_config() -> config_dict.ConfigDict:
         lin_vel_x=[-0.1, 0.15],
         lin_vel_y=[-0.2, 0.2],
         ang_vel_yaw=[-0.5, 0.5],  # [-1.0, 1.0]
+
         neck_pitch_range=[-0.34, 1.1],
         head_pitch_range=[-0.78, 0.78],
         head_yaw_range=[-2.7, 2.7],
