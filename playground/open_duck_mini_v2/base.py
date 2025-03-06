@@ -192,6 +192,10 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         """Set the qpos only for the actual joints (omit the backlash joint)"""
         return qpos.at[self.get_actuator_joints_qpos_addr()].set(new_qpos)
 
+    def get_actuator_backlash_qpos(self, data: jax.Array) -> jax.Array:
+        """Return the all the qpos of backlash joints"""
+        return data[self.backlash_joint_qpos_addr]
+
 
     def get_actuator_joints_qvel(self, data: jax.Array) -> jax.Array:
         """Return the all the qvel of actual joints"""
