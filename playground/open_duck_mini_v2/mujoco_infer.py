@@ -24,7 +24,7 @@ class MjInfer:
         self.angularVelocityScale = 1.0
         self.dof_pos_scale = 1.0
         self.dof_vel_scale = 0.05
-        self.action_scale = 0.5
+        self.action_scale = 0.25
 
         self.PRM = PolyReferenceMotion(reference_data)
 

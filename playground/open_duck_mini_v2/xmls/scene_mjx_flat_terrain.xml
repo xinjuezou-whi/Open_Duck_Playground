@@ -1,6 +1,6 @@
 <mujoco model="Open Duck Mini V2 flat terrain scene">
-  <!-- <include file="open_duck_mini_v2.xml"/> -->
-  <include file="open_duck_mini_v2_no_head.xml"/>
+  <include file="open_duck_mini_v2.xml"/>
+  <!-- <include file="open_duck_mini_v2_no_head.xml"/> -->
 
   <statistic center="0 0 0.1" extent="0.8" meansize="0.04"/>
 
@@ -78,6 +78,10 @@
         -0.63
         1.368
         -0.784
+        0
+        0
+        0
+        0
         -0.003
         -0.065
         0.635
@@ -90,6 +94,10 @@
         -0.63
         1.368
         -0.784
+        0
+        0
+        0
+        0
         -0.003
         -0.065
         0.635

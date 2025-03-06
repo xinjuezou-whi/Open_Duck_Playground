@@ -86,6 +86,8 @@ class BaseRunner(ABC):
             "BerkeleyHumanoidJoystickFlatTerrain"
         )  # TODO
         self.ppo_training_params = dict(self.ppo_params)
+        self.ppo_training_params["num_timesteps"] = 150000000 * 20
+        
 
         if "network_factory" in self.ppo_params:
             network_factory = functools.partial(

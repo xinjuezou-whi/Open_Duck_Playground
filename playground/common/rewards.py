@@ -96,9 +96,11 @@ def cost_stand_still(
     qvel: jax.Array,
     default_pose: jax.Array,
 ) -> jax.Array:
-    cmd_norm = jp.linalg.norm(commands)
+    cmd_norm = jp.linalg.norm(commands[:3])
     pose_cost = jp.sum(jp.abs(qpos - default_pose))
     vel_cost = jp.sum(jp.abs(qvel))
+    # pose_cost = jp.sum(jp.abs(qpos[5:9] - default_pose[5:9]))  # ignore head
+    # vel_cost = jp.sum(jp.abs(qvel[5:9]))  # ignore head
     return jp.nan_to_num(pose_cost + vel_cost) * (cmd_norm < 0.01)
 
 
@@ -127,7 +129,7 @@ def reward_imitation(
         return jp.nan_to_num(0.0)
 
     # TODO don't reward for moving when the command is zero.
-    cmd_norm = jp.linalg.norm(cmd)
+    cmd_norm = jp.linalg.norm(cmd[:3])
 
     w_torso_pos = 1.0
     w_torso_orientation = 1.0
@@ -182,13 +184,13 @@ def reward_imitation(
     base_ang_vel = base_qvel[3:6]
 
     ref_joint_pos = reference_frame[joint_pos_slice_start:joint_pos_slice_end]
-    # remove the neck and head
-    ref_joint_pos = jp.concatenate([ref_joint_pos[:5], ref_joint_pos[11:]])
+    # remove the antennas
+    ref_joint_pos = jp.concatenate([ref_joint_pos[:9], ref_joint_pos[11:]])
     joint_pos = joints_qpos
 
     ref_joint_vels = reference_frame[joint_vels_slice_start:joint_vels_slice_end]
     # remove the neck and head
-    ref_joint_vels = jp.concatenate([ref_joint_vels[:5], ref_joint_vels[11:]])
+    ref_joint_vels = jp.concatenate([ref_joint_vels[:9], ref_joint_vels[11:]])
     joint_vel = joints_qvel
 
     # ref_left_toe_pos = reference_frame[left_toe_pos_slice_start:left_toe_pos_slice_end]
@@ -253,6 +255,25 @@ def reward_alive() -> jax.Array:
 
 
 # Pose-related rewards.
+
+
+def cost_head_pos(
+    joints_qpos: jax.Array,
+    joints_qvel: jax.Array,
+    cmd: jax.Array,
+) -> jax.Array:
+
+    head_cmd = cmd[3:]
+    head_pos = joints_qpos[5:9]
+    head_vel = joints_qvel[5:9]
+
+    target_head_qvel = jp.zeros_like(head_cmd)
+
+    head_pos_error = jp.sum(jp.square(head_pos - head_cmd))
+
+    head_vel_error = jp.sum(jp.square(head_vel - target_head_qvel))
+
+    return jp.nan_to_num(head_pos_error + head_vel_error)
 
 
 # FIXME
@@ -323,7 +344,7 @@ def reward_feet_air_time(
     threshold_min: float = 0.1,  # 0.2
     threshold_max: float = 0.5,
 ) -> jax.Array:
-    cmd_norm = jp.linalg.norm(commands)
+    cmd_norm = jp.linalg.norm(commands[:3])
     air_time = (air_time - threshold_min) * first_contact
     air_time = jp.clip(air_time, max=threshold_max - threshold_min)
     reward = jp.sum(air_time)
