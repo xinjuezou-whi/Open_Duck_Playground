@@ -121,7 +121,7 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
         self.backlash_idx_to_add = []
 
         for i, actuator_name in enumerate(self.actuator_names):
-            if actuator_name + "_backlash" not in self.backlash_joint_names
+            if actuator_name + "_backlash" not in self.backlash_joint_names:
                 self.backlash_idx_to_add.append(i)
 
         print(f"actuators: {self.actuator_names}")
