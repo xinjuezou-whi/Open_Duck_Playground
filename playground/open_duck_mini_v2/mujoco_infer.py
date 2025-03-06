@@ -132,6 +132,12 @@ class MjInfer:
 
         self.gyro_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SENSOR, "gyro")
         self.gyro_dimensions = 3
+        
+        self.accelerometer_id = mujoco.mj_name2id(
+            self.model, mujoco.mjtObj.mjOBJ_SENSOR, "accelerometer"
+        )
+        self.accelerometer_dimensions = 3
+
         self.linvel_id = mujoco.mj_name2id(
             self.model, mujoco.mjtObj.mjOBJ_SENSOR, "local_linvel"
         )
@@ -261,6 +267,12 @@ class MjInfer:
     def get_gyro(self, data):
         return data.sensordata[self.gyro_id : self.gyro_id + self.gyro_dimensions]
 
+    def get_accelerometer(self, data):
+        return data.sensordata[
+            self.accelerometer_id : self.accelerometer_id
+            + self.accelerometer_dimensions
+        ]
+
     def get_linvel(self, data):
         return data.sensordata[self.linvel_id : self.linvel_id + self.linvel_dimensions]
 
@@ -299,6 +311,9 @@ class MjInfer:
         last_action,
         command,  # , qvel_history, qpos_error_history, gravity_history
     ):
+        gyro = self.get_gyro(data)
+        accelerometer = self.get_accelerometer(data)
+
         gravity = self.get_gravity(data)
         joint_angles = self.get_actuator_joints_qpos(data.qpos)
         joint_vel = self.get_actuator_joints_qvel(data.qvel)
@@ -306,10 +321,12 @@ class MjInfer:
         contacts = self.get_feet_contacts(data)
 
         ref = self.PRM.get_reference_motion(*command, self.imitation_i)
-
+        print(accelerometer)
         obs = np.concatenate(
             [
-                gravity,
+                gyro,
+                accelerometer,
+                # gravity,
                 command,
                 joint_angles - self.default_actuator,
                 joint_vel * self.dof_vel_scale,
@@ -379,7 +396,7 @@ class MjInfer:
                         self.last_last_last_action = self.last_last_action.copy()
                         self.last_last_action = self.last_action.copy()
                         self.last_action = action.copy()
-
+                        action = np.zeros(self.model.nu)
                         action = self.default_actuator + action * self.action_scale
                         self.data.ctrl = action.copy()
 
