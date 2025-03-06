@@ -68,7 +68,8 @@ def default_config() -> config_dict.ConfigDict:
                 joint_vel=2.5,  # rad/s # Was 1.5
                 gravity=0.1,
                 linvel=0.1,
-                gyro=0.2,  # angvel
+                gyro=0.05,
+                accelerometer=0.005,
             ),
         ),
         reward_config=config_dict.create(
@@ -121,7 +122,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
     def _post_init(self) -> None:
 
-        self._init_q=jp.array(self._mj_model.keyframe("home").qpos)
+        self._init_q = jp.array(self._mj_model.keyframe("home").qpos)
         self._default_actuator = self._mj_model.keyframe(
             "home"
         ).ctrl  # ctrl of all the actual joints (no floating base and no backlash)
@@ -201,7 +202,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         self._qpos_noise_scale = jp.array(qpos_noise_scale)
 
     def reset(self, rng: jax.Array) -> mjx_env.State:
-        qpos = self._init_q #the complete qpos
+        qpos = self._init_q  # the complete qpos
         # print(f'DEBUG0 init qpos: {qpos}')
         qvel = jp.zeros(self.mjx_model.nv)
 
@@ -210,31 +211,34 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         rng, key = jax.random.split(rng)
         dxy = jax.random.uniform(key, (2,), minval=-0.05, maxval=0.05)
 
-        #floating base
-        base_qpos=self.get_floating_base_qpos(qpos)
-        base_qpos=base_qpos.at[0:2].set(qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2] + dxy) #x y noise
+        # floating base
+        base_qpos = self.get_floating_base_qpos(qpos)
+        base_qpos = base_qpos.at[0:2].set(
+            qpos[self._floating_base_qpos_addr : self._floating_base_qpos_addr + 2]
+            + dxy
+        )  # x y noise
 
         rng, key = jax.random.split(rng)
         yaw = jax.random.uniform(key, (1,), minval=-3.14, maxval=3.14)
         quat = math.axis_angle_to_quat(jp.array([0, 0, 1]), yaw)
         new_quat = math.quat_mul(
-            qpos[self._floating_base_qpos_addr + 3 : self._floating_base_qpos_addr + 7], quat
-        ) #yaw noise
+            qpos[self._floating_base_qpos_addr + 3 : self._floating_base_qpos_addr + 7],
+            quat,
+        )  # yaw noise
 
-        base_qpos=base_qpos.at[3:7].set(
-            new_quat
-        )
+        base_qpos = base_qpos.at[3:7].set(new_quat)
 
-        qpos=self.set_floating_base_qpos(base_qpos, qpos)
+        qpos = self.set_floating_base_qpos(base_qpos, qpos)
         # print(f'DEBUG1 base qpos: {qpos}')
         # init joint position
         # qpos[7:]=*U(0.0, 0.1)
         rng, key = jax.random.split(rng)
 
-
         # multiply actual joints with noise (excluding floating base and backlash)
-        qpos_j = self.get_actuator_joints_qpos(qpos)* jax.random.uniform(key, (self._actuators,), minval=0.5, maxval=1.5)
-        qpos=self.set_actuator_joints_qpos(qpos_j,qpos)
+        qpos_j = self.get_actuator_joints_qpos(qpos) * jax.random.uniform(
+            key, (self._actuators,), minval=0.5, maxval=1.5
+        )
+        qpos = self.set_actuator_joints_qpos(qpos_j, qpos)
         # print(f'DEBUG2 joint qpos: {qpos}')
         # init joint vel
         # d(xyzrpy)=U(-0.05, 0.05)
@@ -243,9 +247,11 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         #     jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5)
         # )
 
-        qvel=self.set_floating_base_qvel(jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5),qvel)
+        qvel = self.set_floating_base_qvel(
+            jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5), qvel
+        )
         # print(f'DEBUG3 base qvel: {qvel}')
-        ctrl=self.get_actuator_joints_qpos(qpos)
+        ctrl = self.get_actuator_joints_qpos(qpos)
         # print(f'DEBUG4 ctrl: {ctrl}')
         data = mjx_env.init(self.mjx_model, qpos=qpos, qvel=qvel, ctrl=ctrl)
         rng, cmd_rng = jax.random.split(rng)
@@ -364,8 +370,11 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         )
         push *= self._config.push_config.enable
         qvel = state.data.qvel
-        qvel = qvel.at[self._floating_base_qvel_addr: self._floating_base_qvel_addr + 2].set(
-            push * push_magnitude + qvel[self._floating_base_qvel_addr: self._floating_base_qvel_addr + 2]
+        qvel = qvel.at[
+            self._floating_base_qvel_addr : self._floating_base_qvel_addr + 2
+        ].set(
+            push * push_magnitude
+            + qvel[self._floating_base_qvel_addr : self._floating_base_qvel_addr + 2]
         )  # floating base x,y
         data = state.data.replace(qvel=qvel)
         state = state.replace(data=data)
@@ -441,14 +450,24 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
     def _get_obs(
         self, data: mjx.Data, info: dict[str, Any], contact: jax.Array
     ) -> mjx_env.Observation:
+
         gyro = self.get_gyro(data)
-        # info["rng"], noise_rng = jax.random.split(info["rng"])
-        # noisy_gyro = (
-        #     gyro
-        #     + (2 * jax.random.uniform(noise_rng, shape=gyro.shape) - 1)
-        #     * self._config.noise_config.level
-        #     * self._config.noise_config.scales.gyro
-        # )
+        info["rng"], noise_rng = jax.random.split(info["rng"])
+        noisy_gyro = (
+            gyro
+            + (2 * jax.random.uniform(noise_rng, shape=gyro.shape) - 1)
+            * self._config.noise_config.level
+            * self._config.noise_config.scales.gyro
+        )
+
+        accelerometer = self.get_accelerometer(data)
+        info["rng"], noise_rng = jax.random.split(info["rng"])
+        noisy_accelerometer = (
+            accelerometer
+            + (2 * jax.random.uniform(noise_rng, shape=accelerometer.shape) - 1)
+            * self._config.noise_config.level
+            * self._config.noise_config.scales.accelerometer
+        )
 
         gravity = data.site_xmat[self._site_id].T @ jp.array([0, 0, -1])
         info["rng"], noise_rng = jax.random.split(info["rng"])
@@ -512,7 +531,9 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             [
                 # noisy_linvel,  # 3
                 # noisy_gyro,  # 3
-                noisy_gravity,  # 3
+                # noisy_gravity,  # 3
+                noisy_gyro,  # 3
+                noisy_accelerometer,  # 3
                 info["command"],  # 3
                 noisy_joint_angles - self._default_actuator,  # 10
                 noisy_joint_vel * self._config.dof_vel_scale,  # 10
