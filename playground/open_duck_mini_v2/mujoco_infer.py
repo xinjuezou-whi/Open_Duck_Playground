@@ -131,12 +131,14 @@ class MjInfer:
         self.data.ctrl[:] = self.default_actuator
 
         self.gyro_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SENSOR, "gyro")
+        self.gyro_addr=self.model.sensor_adr[self.gyro_id]
         self.gyro_dimensions = 3
-        
+
         self.accelerometer_id = mujoco.mj_name2id(
             self.model, mujoco.mjtObj.mjOBJ_SENSOR, "accelerometer"
         )
         self.accelerometer_dimensions = 3
+        self.accelerometer_addr = self.model.sensor_adr[self.accelerometer_id]
 
         self.linvel_id = mujoco.mj_name2id(
             self.model, mujoco.mjtObj.mjOBJ_SENSOR, "local_linvel"
@@ -265,11 +267,11 @@ class MjInfer:
         return data.sensordata[i : i + dimensions]
 
     def get_gyro(self, data):
-        return data.sensordata[self.gyro_id : self.gyro_id + self.gyro_dimensions]
+        return data.sensordata[self.gyro_addr : self.gyro_addr + self.gyro_dimensions]
 
     def get_accelerometer(self, data):
         return data.sensordata[
-            self.accelerometer_id : self.accelerometer_id
+            self.accelerometer_addr : self.accelerometer_addr
             + self.accelerometer_dimensions
         ]
 
