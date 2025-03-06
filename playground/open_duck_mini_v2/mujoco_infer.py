@@ -323,7 +323,7 @@ class MjInfer:
         contacts = self.get_feet_contacts(data)
 
         ref = self.PRM.get_reference_motion(*command, self.imitation_i)
-        print(accelerometer)
+
         obs = np.concatenate(
             [
                 gyro,
@@ -398,7 +398,7 @@ class MjInfer:
                         self.last_last_last_action = self.last_last_action.copy()
                         self.last_last_action = self.last_action.copy()
                         self.last_action = action.copy()
-                        action = np.zeros(self.model.nu)
+                        
                         action = self.default_actuator + action * self.action_scale
                         self.data.ctrl = action.copy()
 
