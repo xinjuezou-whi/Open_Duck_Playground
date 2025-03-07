@@ -10,7 +10,6 @@ from playground.open_duck_mini_v2 import joystick, standing
 class OpenDuckMiniV2Runner(BaseRunner):
 
     def __init__(self, args):
-        # TODO select the env depending on the task etc
         super().__init__(args)
         available_envs = {
             "joystick": (joystick, joystick.Joystick),

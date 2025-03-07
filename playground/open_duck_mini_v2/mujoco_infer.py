@@ -14,10 +14,14 @@ from playground.open_duck_mini_v2 import base
 
 
 class MjInfer:
-    def __init__(self, model_path: str, reference_data: str, onnx_model_path: str):
+    def __init__(
+        self, model_path: str, reference_data: str, onnx_model_path: str, standing: bool
+    ):
         self.model = mujoco.MjModel.from_xml_string(
             epath.Path(model_path).read_text(), assets=base.get_assets()
         )
+
+        self.standing = standing
 
         # Params
         self.linearVelocityScale = 1.0
@@ -26,7 +30,8 @@ class MjInfer:
         self.dof_vel_scale = 0.05
         self.action_scale = 0.25
 
-        self.PRM = PolyReferenceMotion(reference_data)
+        if not self.standing:
+            self.PRM = PolyReferenceMotion(reference_data)
 
         NUM_DOFS = self.model.nu
         self.floating_base_name = [
@@ -114,7 +119,10 @@ class MjInfer:
         self.last_action = np.zeros(NUM_DOFS)
         self.last_last_action = np.zeros(NUM_DOFS)
         self.last_last_last_action = np.zeros(NUM_DOFS)
-        self.commands = [0.0, 0.0, 0.0]
+        if not self.standing:
+            self.commands = [0.0, 0.0, 0.0]
+        else:
+            self.commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.decimation = 10
 
         self.init_pos = np.array(
@@ -131,7 +139,7 @@ class MjInfer:
         self.data.ctrl[:] = self.default_actuator
 
         self.gyro_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SENSOR, "gyro")
-        self.gyro_addr=self.model.sensor_adr[self.gyro_id]
+        self.gyro_addr = self.model.sensor_adr[self.gyro_id]
         self.gyro_dimensions = 3
 
         self.accelerometer_id = mujoco.mj_name2id(
@@ -322,7 +330,8 @@ class MjInfer:
 
         contacts = self.get_feet_contacts(data)
 
-        ref = self.PRM.get_reference_motion(*command, self.imitation_i)
+        if not self.standing:
+            ref = self.PRM.get_reference_motion(*command, self.imitation_i)
 
         obs = np.concatenate(
             [
@@ -336,7 +345,7 @@ class MjInfer:
                 self.last_last_action,
                 self.last_last_last_action,
                 contacts,
-                ref,
+                ref if not self.standing else np.array([]),
             ]
         )
 
@@ -383,10 +392,11 @@ class MjInfer:
                     counter += 1
 
                     if counter % self.decimation == 0:
-                        self.imitation_i += 1
-                        self.imitation_i = (
-                            self.imitation_i % self.PRM.nb_steps_in_period
-                        )
+                        if not self.standing:
+                            self.imitation_i += 1
+                            self.imitation_i = (
+                                self.imitation_i % self.PRM.nb_steps_in_period
+                            )
                         obs = self.get_obs(
                             self.data,
                             self.last_action,
@@ -398,7 +408,7 @@ class MjInfer:
                         self.last_last_last_action = self.last_last_action.copy()
                         self.last_last_action = self.last_action.copy()
                         self.last_action = action.copy()
-                        
+
                         action = self.default_actuator + action * self.action_scale
                         self.data.ctrl = action.copy()
 
@@ -428,8 +438,11 @@ if __name__ == "__main__":
         type=str,
         default="playground/open_duck_mini_v2/xmls/scene_mjx_flat_terrain.xml",
     )
+    parser.add_argument("--standing", action="store_true", default=False)
 
     args = parser.parse_args()
 
-    mjinfer = MjInfer(args.model_path, args.reference_data, args.onnx_model_path)
+    mjinfer = MjInfer(
+        args.model_path, args.reference_data, args.onnx_model_path, args.standing
+    )
     mjinfer.run()

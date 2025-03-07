@@ -96,7 +96,7 @@ def default_config() -> config_dict.ConfigDict:
         head_pitch_range=[-0.78, 0.78],
         head_yaw_range=[-2.7, 2.7],
         head_roll_range=[-0.5, 0.5],
-        head_range_factor=0.3,  # to make it easier
+        head_range_factor=1.0,
     )
 
 
