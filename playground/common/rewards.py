@@ -130,6 +130,7 @@ def cost_termination(done: jax.Array) -> jax.Array:
 
 
 def reward_imitation(
+    base_qpos: jax.Array,
     base_qvel: jax.Array,
     joints_qpos: jax.Array,
     joints_qvel: jax.Array,
@@ -170,8 +171,8 @@ def reward_imitation(
     # root_pos_slice_start = 0
     # root_pos_slice_end = 3
 
-    # root_quat_slice_start = 3
-    # root_quat_slice_end = 7
+    root_quat_slice_start = 3
+    root_quat_slice_end = 7
 
     # left_toe_pos_slice_start = 23
     # left_toe_pos_slice_end = 26
@@ -185,10 +186,16 @@ def reward_imitation(
     # ref_base_pos = reference_frame[root_pos_slice_start:root_pos_slice_end]
     # base_pos = qpos[:3]
 
-    # ref_base_orientation_quat = reference_frame[root_quat_slice_start:root_quat_slice_end]
-    # ref_base_orientation_quat = ref_base_orientation_quat / jp.linalg.norm(ref_base_orientation_quat)  # normalize the quat
-    # base_orientation = qpos[3:7]
-    # base_orientation = base_orientation / jp.linalg.norm(base_orientation)  # normalize the quat
+    ref_base_orientation_quat = reference_frame[
+        root_quat_slice_start:root_quat_slice_end
+    ]
+    ref_base_orientation_quat = ref_base_orientation_quat / jp.linalg.norm(
+        ref_base_orientation_quat
+    )  # normalize the quat
+    base_orientation = base_qpos[3:7]
+    base_orientation = base_orientation / jp.linalg.norm(
+        base_orientation
+    )  # normalize the quat
 
     ref_base_lin_vel = reference_frame[linear_vel_slice_start:linear_vel_slice_end]
     base_lin_vel = base_qvel[:3]
@@ -218,7 +225,10 @@ def reward_imitation(
 
     # real quaternion angle doesn't have the expected  effect, switching back for now
     # torso_orientation_rew = jp.exp(-20 * self.quaternion_angle(base_orientation, ref_base_orientation_quat)) * w_torso_orientation
-    # torso_orientation_rew = jp.exp(-20.0 * jp.sum(jp.square(base_orientation - ref_base_orientation_quat))) * w_torso_orientation
+    torso_orientation_rew = (
+        jp.exp(-20.0 * jp.sum(jp.square(base_orientation - ref_base_orientation_quat)))
+        * w_torso_orientation
+    )
 
     lin_vel_xy_rew = (
         jp.exp(-8.0 * jp.sum(jp.square(base_lin_vel[:2] - ref_base_lin_vel[:2])))
@@ -248,7 +258,6 @@ def reward_imitation(
     )
     contact_rew = jp.sum(contacts == ref_foot_contacts) * w_contact
 
-    # reward = torso_pos_rew + torso_orientation_rew +  lin_vel_xy_rew + lin_vel_z_rew + ang_vel_xy_rew + ang_vel_z_rew + joint_pos_rew + joint_vel_rew + contact_rew
     reward = (
         lin_vel_xy_rew
         + lin_vel_z_rew
@@ -257,8 +266,9 @@ def reward_imitation(
         + joint_pos_rew
         + joint_vel_rew
         + contact_rew
+        + torso_orientation_rew
     )
-    # reward = joint_pos_rew + joint_vel_rew + contact_rew # trying without the lin and ang vel because they can compete with the tracking rewards
+
     reward *= cmd_norm > 0.01  # No reward for zero commands.
     return jp.nan_to_num(reward)
 
