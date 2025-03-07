@@ -1,4 +1,4 @@
-"""Runs training and evaluation loop for the Z-Bot."""
+"""Runs training and evaluation loop for Open Duck Mini V2."""
 
 import argparse
 
@@ -14,7 +14,7 @@ class OpenDuckMiniV2Runner(BaseRunner):
         super().__init__(args)
         available_envs = {
             "joystick": (joystick, joystick.Joystick),
-            "standing": (standing, standing.Standing)
+            "standing": (standing, standing.Standing),
         }
         if args.env not in available_envs:
             raise ValueError(f"Unknown env {args.env}")
