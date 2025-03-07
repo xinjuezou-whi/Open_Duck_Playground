@@ -103,7 +103,6 @@ def cost_stand_still(
     # vel_cost = jp.sum(jp.abs(qvel[5:9]))  # ignore head
     return jp.nan_to_num(pose_cost + vel_cost) * (cmd_norm < 0.01)
 
-
 def cost_termination(done: jax.Array) -> jax.Array:
     return done
 
