@@ -597,7 +597,7 @@ class Standing(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             "head_pos": cost_head_pos(
                 self.get_actuator_joints_qpos(data.qpos),
                 self.get_actuator_joints_qvel(data.qvel),
-                info["command"]
+                info["command"],
             ),
         }
 
