@@ -31,7 +31,8 @@ def main() -> None:
         default="checkpoints",
         help="Where to save the checkpoints",
     )
-    parser.add_argument("--num_timesteps", type=int, default=300000000)
+    # parser.add_argument("--num_timesteps", type=int, default=300000000)
+    parser.add_argument("--num_timesteps", type=int, default=150000000)
 
     parser.add_argument("--task", type=str, default="flat_terrain", help="Task to run")
     # parser.add_argument(
