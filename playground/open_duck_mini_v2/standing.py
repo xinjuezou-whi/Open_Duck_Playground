@@ -645,7 +645,7 @@ class Standing(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # With 10% chance, set everything to zero.
         return jp.where(
             jax.random.bernoulli(rng4, p=0.1),
-            jp.zeros(3),
+            jp.zeros(7),
             jp.hstack(
                 [
                     0.0,
