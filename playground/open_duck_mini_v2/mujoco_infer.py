@@ -400,6 +400,9 @@ class MjInfer:
             self.commands[4] = head_pitch
             self.commands[5] = head_yaw
             self.commands[6] = head_roll
+
+            # print(self.commands)
+            # print(self.data.ctrl[5:9])
             
 
     def run(self):
@@ -437,9 +440,12 @@ class MjInfer:
                         self.last_last_last_action = self.last_last_action.copy()
                         self.last_last_action = self.last_action.copy()
                         self.last_action = action.copy()
+                        
 
                         action = self.default_actuator + action * self.action_scale
                         self.data.ctrl = action.copy()
+                        # self.data.ctrl[:5] = action[:5].copy()
+                        # self.data.ctrl[9:] = action[9:].copy()
 
                     viewer.sync()
 

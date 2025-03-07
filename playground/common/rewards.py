@@ -102,9 +102,19 @@ def cost_stand_still(
         pose_cost = jp.sum(jp.abs(qpos - default_pose))
         vel_cost = jp.sum(jp.abs(qvel))
     else:
-        pose_cost = jp.sum(jp.abs(qpos[5:9] - default_pose[5:9]))  # ignore head
-        vel_cost = jp.sum(jp.abs(qvel[5:9]))  # ignore head
+        left_leg_pos = qpos[:5]
+        right_leg_pos = qpos[9:]
+        left_leg_vel = qvel[:5]
+        right_leg_vel = qvel[9:]
+        left_leg_default = default_pose[:5]
+        right_leg_default = default_pose[9:]
+        pose_cost = jp.sum(jp.abs(left_leg_pos - left_leg_default)) + jp.sum(
+            jp.abs(right_leg_pos - right_leg_default)
+        )
+        vel_cost = jp.sum(jp.abs(left_leg_vel)) + jp.sum(jp.abs(right_leg_vel))
+
     return jp.nan_to_num(pose_cost + vel_cost) * (cmd_norm < 0.01)
+
 
 def cost_termination(done: jax.Array) -> jax.Array:
     return done
