@@ -225,6 +225,8 @@ def reward_imitation(
 
     # real quaternion angle doesn't have the expected  effect, switching back for now
     # torso_orientation_rew = jp.exp(-20 * self.quaternion_angle(base_orientation, ref_base_orientation_quat)) * w_torso_orientation
+
+    # TODO ignore yaw here, we just want xy orientation
     torso_orientation_rew = (
         jp.exp(-20.0 * jp.sum(jp.square(base_orientation - ref_base_orientation_quat)))
         * w_torso_orientation
@@ -266,7 +268,7 @@ def reward_imitation(
         + joint_pos_rew
         + joint_vel_rew
         + contact_rew
-        + torso_orientation_rew
+        # + torso_orientation_rew
     )
 
     reward *= cmd_norm > 0.01  # No reward for zero commands.
