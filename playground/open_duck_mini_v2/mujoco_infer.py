@@ -116,6 +116,11 @@ class MjInfer:
         self.COMMANDS_RANGE_Y = [-0.2, 0.2]
         self.COMMANDS_RANGE_THETA = [-1.0, 1.0]  # [-1.0, 1.0]
 
+        self.NECK_PITCH_RANGE = [-0.34, 1.1]
+        self.HEAD_PITCH_RANGE = [-0.78, 0.78]
+        self.HEAD_YAW_RANGE = [-2.7, 2.7]
+        self.HEAD_ROLL_RANGE = [-0.5, 0.5]
+
         self.last_action = np.zeros(NUM_DOFS)
         self.last_last_action = np.zeros(NUM_DOFS)
         self.last_last_last_action = np.zeros(NUM_DOFS)
@@ -353,25 +358,49 @@ class MjInfer:
 
     def key_callback(self, keycode):
         print(f"key: {keycode}")
-        lin_vel_x = 0
-        lin_vel_y = 0
-        ang_vel = 0
-        if keycode == 265:  # arrow up
-            lin_vel_x = self.COMMANDS_RANGE_X[1]
-        if keycode == 264:  # arrow down
-            lin_vel_x = self.COMMANDS_RANGE_X[0]
-        if keycode == 263:  # arrow left
-            lin_vel_y = self.COMMANDS_RANGE_Y[1]
-        if keycode == 262:  # arrow right
-            lin_vel_y = self.COMMANDS_RANGE_Y[0]
-        if keycode == 81:  # a
-            ang_vel = self.COMMANDS_RANGE_THETA[1]
-        if keycode == 69:  # e
-            ang_vel = self.COMMANDS_RANGE_THETA[0]
+        if not self.standing:
+            lin_vel_x = 0
+            lin_vel_y = 0
+            ang_vel = 0
+            if keycode == 265:  # arrow up
+                lin_vel_x = self.COMMANDS_RANGE_X[1]
+            if keycode == 264:  # arrow down
+                lin_vel_x = self.COMMANDS_RANGE_X[0]
+            if keycode == 263:  # arrow left
+                lin_vel_y = self.COMMANDS_RANGE_Y[1]
+            if keycode == 262:  # arrow right
+                lin_vel_y = self.COMMANDS_RANGE_Y[0]
+            if keycode == 81:  # a
+                ang_vel = self.COMMANDS_RANGE_THETA[1]
+            if keycode == 69:  # e
+                ang_vel = self.COMMANDS_RANGE_THETA[0]
 
-        self.commands[0] = lin_vel_x
-        self.commands[1] = lin_vel_y
-        self.commands[2] = ang_vel
+            self.commands[0] = lin_vel_x
+            self.commands[1] = lin_vel_y
+            self.commands[2] = ang_vel
+        else:
+            neck_pitch = 0
+            head_pitch = 0
+            head_yaw = 0
+            head_roll = 0
+            if keycode == 265:  # arrow up
+                head_pitch = self.NECK_PITCH_RANGE[1]
+            if keycode == 264:  # arrow down
+                head_pitch = self.NECK_PITCH_RANGE[0]
+            if keycode == 263:  # arrow left
+                head_yaw = self.HEAD_YAW_RANGE[1]
+            if keycode == 262:  # arrow right
+                head_yaw = self.HEAD_YAW_RANGE[0]
+            if keycode == 81:  # a
+                head_roll = self.HEAD_ROLL_RANGE[1]
+            if keycode == 69:  # e
+                head_roll = self.HEAD_ROLL_RANGE[0]
+
+            self.commands[3] = neck_pitch
+            self.commands[4] = head_pitch
+            self.commands[5] = head_yaw
+            self.commands[6] = head_roll
+            
 
     def run(self):
         try:
