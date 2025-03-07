@@ -200,6 +200,8 @@ class OpenDuckMiniV2Env(mjx_env.MjxEnv):
 
     def get_actuator_backlash_qpos(self, data: jax.Array) -> jax.Array:
         """Return the all the qpos of backlash joints"""
+        if self.backlash_joint_qpos_addr == []:
+            return jp.array([])
         return data[jp.array(self.backlash_joint_qpos_addr)]
 
 
