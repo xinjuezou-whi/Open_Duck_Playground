@@ -74,13 +74,13 @@ def default_config() -> config_dict.ConfigDict:
             scales=config_dict.create(
                 # tracking_lin_vel=2.5,
                 # tracking_ang_vel=4.0,
-                orientation=-1.0,
+                orientation=-0.5,
                 torques=-1.0e-3,
                 action_rate=-0.375,  # was -1.5
                 stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 # imitation=1.0,
-                head_pos=-5.0,
+                head_pos=-2.0,
             ),
             tracking_sigma=0.01,  # was working at 0.01
         ),
@@ -593,6 +593,7 @@ class Standing(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 self.get_actuator_joints_qpos(data.qpos),
                 self.get_actuator_joints_qvel(data.qvel),
                 self._default_actuator,
+                True
             ),
             "head_pos": cost_head_pos(
                 self.get_actuator_joints_qpos(data.qpos),
