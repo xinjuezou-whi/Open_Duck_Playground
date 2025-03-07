@@ -89,3 +89,10 @@ You will need to:
 # Notes
 
 Inspired from https://github.com/kscalelabs/mujoco_playground
+
+
+## Current win
+- train for 300 000 000 steps
+- train with backlash (takes longer)
+- Flat terrain
+- Infer on the robot with kp = 22 instead of 32
