@@ -333,7 +333,7 @@ class MjInfer:
         contacts = self.get_feet_contacts(data)
 
         if not self.standing:
-            ref = self.PRM.get_reference_motion(*command, self.imitation_i)
+            ref = self.PRM.get_reference_motion(*command[:3], self.imitation_i)
 
         obs = np.concatenate(
             [
@@ -435,9 +435,8 @@ class MjInfer:
                         self.last_action = action.copy()
 
                         action = self.default_actuator + action * self.action_scale
+
                         self.data.ctrl = action.copy()
-                        # self.data.ctrl[:5] = action[:5].copy()
-                        # self.data.ctrl[9:] = action[9:].copy()
 
                     viewer.sync()
 
