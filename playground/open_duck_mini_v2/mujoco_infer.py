@@ -109,7 +109,7 @@ class MjInfer:
 
         self.COMMANDS_RANGE_X = [-0.1, 0.15]
         self.COMMANDS_RANGE_Y = [-0.2, 0.2]
-        self.COMMANDS_RANGE_THETA = [-0.5, 0.5]  # [-1.0, 1.0]
+        self.COMMANDS_RANGE_THETA = [-1.0, 1.0]  # [-1.0, 1.0]
 
         self.last_action = np.zeros(NUM_DOFS)
         self.last_last_action = np.zeros(NUM_DOFS)
