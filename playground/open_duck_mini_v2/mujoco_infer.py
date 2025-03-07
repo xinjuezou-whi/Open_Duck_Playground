@@ -124,10 +124,7 @@ class MjInfer:
         self.last_action = np.zeros(NUM_DOFS)
         self.last_last_action = np.zeros(NUM_DOFS)
         self.last_last_last_action = np.zeros(NUM_DOFS)
-        if not self.standing:
-            self.commands = [0.0, 0.0, 0.0]
-        else:
-            self.commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.decimation = 10
 
         self.init_pos = np.array(
@@ -401,10 +398,6 @@ class MjInfer:
             self.commands[5] = head_yaw
             self.commands[6] = head_roll
 
-            # print(self.commands)
-            # print(self.data.ctrl[5:9])
-            
-
     def run(self):
         try:
             with mujoco.viewer.launch_passive(
@@ -440,7 +433,6 @@ class MjInfer:
                         self.last_last_last_action = self.last_last_action.copy()
                         self.last_last_action = self.last_action.copy()
                         self.last_action = action.copy()
-                        
 
                         action = self.default_actuator + action * self.action_scale
                         self.data.ctrl = action.copy()

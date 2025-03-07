@@ -97,6 +97,7 @@ def cost_stand_still(
     default_pose: jax.Array,
     ignore_head: bool = False,
 ) -> jax.Array:
+    # TODO no hard coded slices
     cmd_norm = jp.linalg.norm(commands[:3])
     if not ignore_head:
         pose_cost = jp.sum(jp.abs(qpos - default_pose))

@@ -672,10 +672,10 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                     lin_vel_x,
                     lin_vel_y,
                     ang_vel_yaw,
-                    # neck_pitch,
-                    # head_pitch,
-                    # head_yaw,
-                    # head_roll,
+                    neck_pitch,
+                    head_pitch,
+                    head_yaw,
+                    head_roll,
                 ]
             ),
         )
