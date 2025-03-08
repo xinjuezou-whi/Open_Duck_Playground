@@ -84,7 +84,7 @@ def default_config() -> config_dict.ConfigDict:
                 stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
-                head_pos=-2.0,
+                head_pos=-10.0,
             ),
             tracking_sigma=0.01,  # was working at 0.01
         ),
@@ -96,7 +96,7 @@ def default_config() -> config_dict.ConfigDict:
         lin_vel_x=[-0.1, 0.15],
         lin_vel_y=[-0.2, 0.2],
         ang_vel_yaw=[-1.0, 1.0],  # [-1.0, 1.0]
-        
+
         neck_pitch_range=[-0.34, 1.1],
         head_pitch_range=[-0.78, 0.78],
         head_yaw_range=[-2.7, 2.7],

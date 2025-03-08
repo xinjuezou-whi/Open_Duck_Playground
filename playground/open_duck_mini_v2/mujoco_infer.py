@@ -22,6 +22,7 @@ class MjInfer:
         )
 
         self.standing = standing
+        self.head_control_mode = self.standing
 
         # Params
         self.linearVelocityScale = 1.0
@@ -355,10 +356,12 @@ class MjInfer:
 
     def key_callback(self, keycode):
         print(f"key: {keycode}")
-        if not self.standing:
-            lin_vel_x = 0
-            lin_vel_y = 0
-            ang_vel = 0
+        if keycode == 72:  # h
+            self.head_control_mode = not self.head_control_mode
+        lin_vel_x = 0
+        lin_vel_y = 0
+        ang_vel = 0
+        if not self.head_control_mode:
             if keycode == 265:  # arrow up
                 lin_vel_x = self.COMMANDS_RANGE_X[1]
             if keycode == 264:  # arrow down
@@ -371,10 +374,6 @@ class MjInfer:
                 ang_vel = self.COMMANDS_RANGE_THETA[1]
             if keycode == 69:  # e
                 ang_vel = self.COMMANDS_RANGE_THETA[0]
-
-            self.commands[0] = lin_vel_x
-            self.commands[1] = lin_vel_y
-            self.commands[2] = ang_vel
         else:
             neck_pitch = 0
             head_pitch = 0
@@ -397,6 +396,10 @@ class MjInfer:
             self.commands[4] = head_pitch
             self.commands[5] = head_yaw
             self.commands[6] = head_roll
+
+        self.commands[0] = lin_vel_x
+        self.commands[1] = lin_vel_y
+        self.commands[2] = ang_vel
 
     def run(self):
         try:
