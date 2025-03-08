@@ -79,7 +79,8 @@ def default_config() -> config_dict.ConfigDict:
                 tracking_ang_vel=4.0,
                 # orientation=-0.5,
                 torques=-1.0e-3,
-                action_rate=-0.375,  # was -1.5
+                # action_rate=-0.375,  # was -1.5
+                action_rate=-0.5,  # was -1.5
                 stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
