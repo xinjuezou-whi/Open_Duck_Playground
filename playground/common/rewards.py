@@ -294,7 +294,7 @@ def cost_head_pos(
 
     # target_head_qvel = jp.zeros_like(head_cmd)
 
-    head_pos_error = jp.sum(jp.square(head_pos - head_cmd))
+    head_pos_error = jp.sum(head_pos - head_cmd)
 
     # head_vel_error = jp.sum(jp.square(head_vel - target_head_qvel))
 
