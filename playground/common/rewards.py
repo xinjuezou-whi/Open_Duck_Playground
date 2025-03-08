@@ -287,7 +287,7 @@ def cost_head_pos(
     joints_qvel: jax.Array,
     cmd: jax.Array,
 ) -> jax.Array:
-
+    move_cmd_norm = jp.linalg.norm(cmd[:3])
     head_cmd = cmd[3:]
     head_pos = joints_qpos[5:9]
     # head_vel = joints_qvel[5:9]
@@ -298,7 +298,7 @@ def cost_head_pos(
 
     # head_vel_error = jp.sum(jp.square(head_vel - target_head_qvel))
 
-    return jp.nan_to_num(head_pos_error)
+    return jp.nan_to_num(head_pos_error) * (move_cmd_norm > 0.01)
     # return jp.nan_to_num(head_pos_error + head_vel_error)
 
 
