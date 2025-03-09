@@ -63,10 +63,9 @@ def default_config() -> config_dict.ConfigDict:
             imu_min_delay=0,  # env steps
             imu_max_delay=3,  # env steps
             scales=config_dict.create(
-                # hip_pos=0.03,  # rad, for each hip joint
-                # knee_pos=0.05,  # rad, for each knee joint
-                # ankle_pos=0.08,  # rad, for each ankle joint
-                joint_pos=0.05,  # rad, for each joint
+                hip_pos=0.03,  # rad, for each hip joint
+                knee_pos=0.05,  # rad, for each knee joint
+                ankle_pos=0.08,  # rad, for each ankle joint
                 joint_vel=2.5,  # rad/s # Was 1.5
                 gravity=0.1,
                 linvel=0.1,
@@ -185,23 +184,23 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         self._foot_linvel_sensor_adr = jp.array(foot_linvel_sensor_adr)
 
         # # noise in the simu?
-        # qpos_noise_scale = np.zeros(self._actuators)
+        qpos_noise_scale = np.zeros(self._actuators)
 
-        # hip_ids = [
-        #     idx for idx, j in enumerate(constants.JOINTS_ORDER_NO_HEAD) if "_hip" in j
-        # ]
-        # knee_ids = [
-        #     idx for idx, j in enumerate(constants.JOINTS_ORDER_NO_HEAD) if "_knee" in j
-        # ]
-        # ankle_ids = [
-        #     idx for idx, j in enumerate(constants.JOINTS_ORDER_NO_HEAD) if "_ankle" in j
-        # ]
+        hip_ids = [
+            idx for idx, j in enumerate(constants.JOINTS_ORDER_NO_HEAD) if "_hip" in j
+        ]
+        knee_ids = [
+            idx for idx, j in enumerate(constants.JOINTS_ORDER_NO_HEAD) if "_knee" in j
+        ]
+        ankle_ids = [
+            idx for idx, j in enumerate(constants.JOINTS_ORDER_NO_HEAD) if "_ankle" in j
+        ]
 
-        # qpos_noise_scale[hip_ids] = self._config.noise_config.scales.hip_pos
-        # qpos_noise_scale[knee_ids] = self._config.noise_config.scales.knee_pos
-        # qpos_noise_scale[ankle_ids] = self._config.noise_config.scales.ankle_pos
-        # # qpos_noise_scale[faa_ids] = self._config.noise_config.scales.faa_pos
-        # self._qpos_noise_scale = jp.array(qpos_noise_scale)
+        qpos_noise_scale[hip_ids] = self._config.noise_config.scales.hip_pos
+        qpos_noise_scale[knee_ids] = self._config.noise_config.scales.knee_pos
+        qpos_noise_scale[ankle_ids] = self._config.noise_config.scales.ankle_pos
+        # qpos_noise_scale[faa_ids] = self._config.noise_config.scales.faa_pos
+        self._qpos_noise_scale = jp.array(qpos_noise_scale)
 
     def reset(self, rng: jax.Array) -> mjx_env.State:
         qpos = self._init_q  # the complete qpos
@@ -507,7 +506,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             joint_angles
             + (2.0 * jax.random.uniform(noise_rng, shape=joint_angles.shape) - 1.0)
             * self._config.noise_config.level
-            * self._config.noise_config.scales.joint_pos
+            * self._qpos_noise_scale
         )
 
         # joint_vel = data.qvel[6:]

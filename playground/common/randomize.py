@@ -28,11 +28,13 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
     # _dof_addr=jp.array([6,8,10,12,14,16,18,20,22,24])
     # _joint_addr=jp.array([7,9,11,13,15,17,19,21,23,25])
 
-    dof_id=jp.array([idx for idx,fr in enumerate(model.dof_hasfrictionloss) if fr==True]) #for backlash joint we disable frictionloss
-    jnt_id=model.dof_jntid[dof_id]
+    dof_id = jp.array(
+        [idx for idx, fr in enumerate(model.dof_hasfrictionloss) if fr == True]
+    )  # for backlash joint we disable frictionloss
+    jnt_id = model.dof_jntid[dof_id]
 
-    dof_addr=jp.array([jadd for jadd in model.jnt_dofadr if jadd in dof_id])
-    joint_addr=model.jnt_qposadr[jnt_id]
+    dof_addr = jp.array([jadd for jadd in model.jnt_dofadr if jadd in dof_id])
+    joint_addr = model.jnt_qposadr[jnt_id]
 
     @jax.vmap
     def rand_dynamics(rng):
@@ -50,11 +52,9 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
         # dof_frictionloss = model.dof_frictionloss.at[6:].set(frictionloss)
 
         frictionloss = model.dof_frictionloss[dof_addr] * jax.random.uniform(
-            key, shape=(model.nu,), minval=0.9, maxval=1.2  # was 0.9, 1.1
+            key, shape=(model.nu,), minval=0.9, maxval=1.2  # was 0.9, 1.1
         )
         dof_frictionloss = model.dof_frictionloss.at[dof_addr].set(frictionloss)
-
-
 
         # Scale armature: *U(1.0, 1.05).
         rng, key = jax.random.split(rng)
@@ -64,14 +64,13 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
         # dof_armature = model.dof_armature.at[6:].set(armature)
 
         armature = model.dof_armature[dof_addr] * jax.random.uniform(
-            key, shape=(model.nu,), minval=0.9, maxval=1.1  # was 1.0, 1.05
+            key, shape=(model.nu,), minval=0.9, maxval=1.1  # was 1.0, 1.05
         )
         dof_armature = model.dof_armature.at[dof_addr].set(armature)
 
-
         # Jitter center of mass positiion: +U(-0.05, 0.05).
         rng, key = jax.random.split(rng)
-        dpos = jax.random.uniform(key, (3,), minval=-0.07, maxval=0.07) # was 0.05
+        dpos = jax.random.uniform(key, (3,), minval=-0.07, maxval=0.07)  # was 0.05
         body_ipos = model.body_ipos.at[TORSO_BODY_ID].set(
             model.body_ipos[TORSO_BODY_ID] + dpos
         )
@@ -93,9 +92,9 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
         #     qpos0[7:] + jax.random.uniform(key, shape=(len(model.qpos0)-7,), minval=-0.05, maxval=0.05)
         # )
         qpos0 = qpos0.at[joint_addr].set(
-            qpos0[joint_addr] + jax.random.uniform(key, shape=(model.nu,), minval=-0.05, maxval=0.05)
+            qpos0[joint_addr]
+            + jax.random.uniform(key, shape=(model.nu,), minval=-0.05, maxval=0.05)
         )
-
 
         # # Randomize KP
         rng, key = jax.random.split(rng)
@@ -112,7 +111,7 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
             body_mass,
             qpos0,
             actuator_gainprm,
-            actuator_biasprm
+            actuator_biasprm,
         )
 
     (
@@ -123,7 +122,7 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
         body_mass,
         qpos0,
         actuator_gainprm,
-        actuator_biasprm
+        actuator_biasprm,
     ) = rand_dynamics(rng)
 
     in_axes = jax.tree_util.tree_map(lambda x: None, model)
@@ -136,7 +135,7 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
             "body_mass": 0,
             "qpos0": 0,
             "actuator_gainprm": 0,
-            "actuator_biasprm": 0
+            "actuator_biasprm": 0,
         }
     )
 
@@ -149,7 +148,7 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
             "body_mass": body_mass,
             "qpos0": qpos0,
             "actuator_gainprm": actuator_gainprm,
-            "actuator_biasprm": actuator_biasprm
+            "actuator_biasprm": actuator_biasprm,
         }
     )
 
