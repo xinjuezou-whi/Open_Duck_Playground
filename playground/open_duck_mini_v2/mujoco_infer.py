@@ -113,7 +113,7 @@ class MjInfer:
 
         self.policy = OnnxInfer(onnx_model_path, awd=True)
 
-        self.COMMANDS_RANGE_X = [-0.1, 0.15]
+        self.COMMANDS_RANGE_X = [-0.15, 0.2]
         self.COMMANDS_RANGE_Y = [-0.2, 0.2]
         self.COMMANDS_RANGE_THETA = [-1.0, 1.0]  # [-1.0, 1.0]
 

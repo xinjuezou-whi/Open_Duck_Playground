@@ -93,7 +93,7 @@ def default_config() -> config_dict.ConfigDict:
             interval_range=[5.0, 10.0],
             magnitude_range=[0.1, 1.0],
         ),
-        lin_vel_x=[-0.1, 0.15],
+        lin_vel_x=[-0.15, 0.2],
         lin_vel_y=[-0.2, 0.2],
         ang_vel_yaw=[-1.0, 1.0],  # [-1.0, 1.0]
 
