@@ -437,8 +437,8 @@ class MjInfer:
                         self.saved_obs.append(obs)
                         action = self.policy.infer(obs)
 
-                        # self.action_filter.push(action)
-                        # action = self.action_filter.get_filtered_action()
+                        self.action_filter.push(action)
+                        action = self.action_filter.get_filtered_action()
 
                         self.last_last_last_action = self.last_last_action.copy()
                         self.last_last_action = self.last_action.copy()
