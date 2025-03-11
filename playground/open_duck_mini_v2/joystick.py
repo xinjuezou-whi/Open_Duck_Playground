@@ -28,6 +28,7 @@ from mujoco_playground._src.collision import geoms_colliding
 
 from . import constants
 from . import base as open_duck_mini_v2_base
+from playground.common.utils import LowPassActionFilter
 from playground.common.poly_reference_motion import PolyReferenceMotion
 from playground.common.rewards import (
     reward_tracking_lin_vel,
@@ -52,7 +53,7 @@ def default_config() -> config_dict.ConfigDict:
         # episode_length=450,
         episode_length=1000,
         action_repeat=1,
-        action_scale=0.25,
+        action_scale=1.0,
         dof_vel_scale=0.05,
         history_len=0,
         soft_joint_pos_limit_factor=0.95,
@@ -80,7 +81,7 @@ def default_config() -> config_dict.ConfigDict:
                 # orientation=-0.5,
                 torques=-1.0e-3,
                 # action_rate=-0.375,  # was -1.5
-                action_rate=-0.5,  # was -1.5
+                action_rate=-1.5,  # was -1.5
                 stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
@@ -96,7 +97,6 @@ def default_config() -> config_dict.ConfigDict:
         lin_vel_x=[-0.15, 0.2],
         lin_vel_y=[-0.2, 0.2],
         ang_vel_yaw=[-1.0, 1.0],  # [-1.0, 1.0]
-
         neck_pitch_range=[-0.34, 1.1],
         head_pitch_range=[-0.78, 0.78],
         head_yaw_range=[-2.7, 2.7],
@@ -201,6 +201,10 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         qpos_noise_scale[ankle_ids] = self._config.noise_config.scales.ankle_pos
         # qpos_noise_scale[faa_ids] = self._config.noise_config.scales.faa_pos
         self._qpos_noise_scale = jp.array(qpos_noise_scale)
+
+        self.action_filter = LowPassActionFilter(
+            1 / self._config.ctrl_dt, cutoff_frequency=37.5
+        )
 
     def reset(self, rng: jax.Array) -> mjx_env.State:
         qpos = self._init_q  # the complete qpos
@@ -359,6 +363,9 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             action_idx[0]
         ]  # action with delay
 
+        self.action_filter.push(action_w_delay)
+        action_w_delay = self.action_filter.get_filtered_action()
+
         push_theta = jax.random.uniform(push1_rng, maxval=2 * jp.pi)
         push_magnitude = jax.random.uniform(
             push2_rng,
@@ -416,7 +423,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         state.info["push_step"] += 1
         state.info["last_last_last_act"] = state.info["last_last_act"]
         state.info["last_last_act"] = state.info["last_act"]
-        state.info["last_act"] = action
+        state.info["last_act"] = action_w_delay
         state.info["rng"], cmd_rng = jax.random.split(state.info["rng"])
         state.info["command"] = jp.where(
             state.info["step"] > 500,
