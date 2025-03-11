@@ -28,7 +28,7 @@ from mujoco_playground._src.collision import geoms_colliding
 
 from . import constants
 from . import base as open_duck_mini_v2_base
-from playground.common.utils import LowPassActionFilter
+# from playground.common.utils import LowPassActionFilter
 from playground.common.poly_reference_motion import PolyReferenceMotion
 from playground.common.rewards import (
     reward_tracking_lin_vel,
@@ -53,7 +53,7 @@ def default_config() -> config_dict.ConfigDict:
         # episode_length=450,
         episode_length=1000,
         action_repeat=1,
-        action_scale=1.0,
+        action_scale=0.5,
         dof_vel_scale=0.05,
         history_len=0,
         soft_joint_pos_limit_factor=0.95,
@@ -81,8 +81,8 @@ def default_config() -> config_dict.ConfigDict:
                 # orientation=-0.5,
                 torques=-1.0e-3,
                 # action_rate=-0.375,  # was -1.5
-                action_rate=-1.5,  # was -1.5
-                stand_still=-0.5,  # was -1.0 TODO try to relax this a bit ?
+                action_rate=-1.0,  # was -1.5
+                stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
                 head_pos=-2.0,
@@ -202,9 +202,9 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # qpos_noise_scale[faa_ids] = self._config.noise_config.scales.faa_pos
         self._qpos_noise_scale = jp.array(qpos_noise_scale)
 
-        self.action_filter = LowPassActionFilter(
-            1 / self._config.ctrl_dt, cutoff_frequency=37.5
-        )
+        # self.action_filter = LowPassActionFilter(
+        #     1 / self._config.ctrl_dt, cutoff_frequency=37.5
+        # )
 
     def reset(self, rng: jax.Array) -> mjx_env.State:
         qpos = self._init_q  # the complete qpos
