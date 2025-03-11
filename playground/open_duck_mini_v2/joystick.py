@@ -363,8 +363,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             action_idx[0]
         ]  # action with delay
 
-        self.action_filter.push(action_w_delay)
-        action_w_delay = self.action_filter.get_filtered_action()
+        # self.action_filter.push(action_w_delay)
+        # action_w_delay = self.action_filter.get_filtered_action()
 
         push_theta = jax.random.uniform(push1_rng, maxval=2 * jp.pi)
         push_magnitude = jax.random.uniform(
