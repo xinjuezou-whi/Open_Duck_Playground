@@ -7,7 +7,7 @@
     // Simplify STL meshes (default: false)
     "simplify_stls": true,
     // Maximum size of the STL files in MB (default: 3)
-    "max_stl_size": 0.1,
+    "max_stl_size": 0.005,
     // "collisions_as_visual": true,
     "ignore": {
         "wj*": "visual",
