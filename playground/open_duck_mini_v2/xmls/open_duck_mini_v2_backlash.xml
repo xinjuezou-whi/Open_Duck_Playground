@@ -111,6 +111,7 @@
       <body name="hip_roll_assembly" pos="-0.019 0.035 0.0459409" quat="1 -1.17663e-16 -1.09357e-14 2.77556e-17">
         <!-- Joint from trunk_assembly to hip_roll_assembly -->
         <joint name="left_hip_yaw" type="hinge" range="-0.5235987755982979 0.5235987755982997" class="sts3215"/>
+        <joint name="left_hip_yaw_backlash" pos="0 0 0" axis="0 0 1" class="backlash"/>
         <inertial pos="0.000795081 -5.46541e-06 -0.03306" mass="0.06648"
           fullinertia="2.44411e-05 2.81818e-05 1.42687e-05 2.35658e-09 -3.81059e-07 -7.50036e-09"/>
         <!-- Part roll_motor_bottom -->
@@ -128,6 +129,7 @@
         <body name="left_roll_to_pitch_assembly" pos="0.01905 4.61436e-15 -0.046015" quat="0.5 -0.5 -0.5 0.5">
           <!-- Joint from hip_roll_assembly to left_roll_to_pitch_assembly -->
           <joint name="left_hip_roll" type="hinge" range="-0.4363323129985815 0.43633231299858327" class="sts3215"/>
+          <joint name="left_hip_roll_backlash" pos="0 0 0" axis="0 0 1" class="backlash"/>
           <inertial pos="0.0508042 -0.00041105 0.0204704" mass="0.07516"
             fullinertia="2.52335e-05 4.13855e-05 2.8127e-05 1.22133e-07 -5.90499e-07 -1.07544e-07"/>
           <!-- Part left_roll_to_pitch -->
@@ -143,6 +145,7 @@
             quat="8.49887e-24 -0.707107 -1.11022e-16 0.707107">
             <!-- Joint from left_roll_to_pitch_assembly to knee_and_ankle_assembly -->
             <joint name="left_hip_pitch" type="hinge" range="-1.2217304763960306 0.5235987755982988" class="sts3215"/>
+            <joint name="left_hip_pitch_backlash" pos="0 0 0" axis="0 0 1" class="backlash"/>
             <inertial pos="0.00253369 -0.0390636 0.0102776" mass="0.12407"
               fullinertia="0.000211406 7.83759e-05 0.000225619 -2.68706e-05 3.81906e-06 2.08009e-05"/>
             <!-- Part left_cache -->
@@ -166,6 +169,7 @@
             <body name="knee_and_ankle_assembly_2" pos="0 -0.07865 0.0001" quat="1 1.11022e-16 1.11022e-16 -2.64698e-23">
               <!-- Joint from knee_and_ankle_assembly to knee_and_ankle_assembly_2 -->
               <joint name="left_knee" type="hinge" range="-1.5707963267948966 1.5707963267948966" class="sts3215"/>
+              <joint name="left_knee_backlash" pos="0 0 0" axis="0 0 1" class="backlash"/>
               <inertial pos="5.01859e-06 -0.0577465 0.0181136" mass="0.07259"
                 fullinertia="4.99575e-05 1.87273e-05 4.23932e-05 1.03817e-08 2.25175e-09 8.81049e-08"/>
               <!-- Part leg_spacer_2 -->
@@ -186,6 +190,7 @@
               <body name="foot_assembly" pos="1.8735e-16 -0.07865 0.0001" quat="1 2.77556e-16 5.55112e-16 1.52656e-16">
                 <!-- Joint from knee_and_ankle_assembly_2 to foot_assembly -->
                 <joint name="left_ankle" type="hinge" range="-1.5707963267948957 1.5707963267948974" class="sts3215"/>
+                <joint name="left_ankle_backlash" pos="0 0 0" axis="0 0 1" class="backlash"/>
                 <inertial pos="0.0110718 -0.0246608 0.0190626" mass="0.07524"
                   fullinertia="1.87482e-05 6.74427e-05 6.061e-05 1.58839e-06 -6.52354e-09 5.67391e-08"/>
                 <!-- Part foot_side -->
@@ -312,6 +317,7 @@
       <body name="hip_roll_assembly_2" pos="-0.019 -0.035 0.0459409" quat="1 -4.25414e-16 -1.07137e-14 2.77556e-17">
         <!-- Joint from trunk_assembly to hip_roll_assembly_2 -->
         <joint name="right_hip_yaw" type="hinge" range="-0.523598775598297 0.5235987755983006" class="sts3215"/>
+        <joint name="right_hip_yaw_backlash" pos="0 0 0" axis="0 0 1" class="backlash"/>
         <inertial pos="0.000795081 -5.46541e-06 -0.03306" mass="0.06648"
           fullinertia="2.44411e-05 2.81818e-05 1.42687e-05 2.35658e-09 -3.81059e-07 -7.50036e-09"/>
         <!-- Part roll_motor_bottom_2 -->
@@ -329,6 +335,7 @@
         <body name="right_roll_to_pitch_assembly" pos="0.01905 4.05787e-14 -0.046015" quat="0.5 -0.5 -0.5 0.5">
           <!-- Joint from hip_roll_assembly_2 to right_roll_to_pitch_assembly -->
           <joint name="right_hip_roll" type="hinge" range="-0.4363323129985797 0.43633231299858505" class="sts3215"/>
+          <joint name="right_hip_roll_backlash" pos="0 0 0" axis="0 0 1" class="backlash"/>
           <inertial pos="-0.0508042 -0.000420742 0.0204704" mass="0.07516"
             fullinertia="2.52329e-05 4.13855e-05 2.81264e-05 -1.30528e-07 5.90499e-07 -9.13427e-08"/>
           <!-- Part right_roll_to_pitch -->
@@ -344,6 +351,7 @@
             quat="0.707107 6.41892e-22 0.707107 -2.22045e-16">
             <!-- Joint from right_roll_to_pitch_assembly to knee_and_ankle_assembly_3 -->
             <joint name="right_hip_pitch" type="hinge" range="-0.5235987755982988 1.2217304763960306" class="sts3215"/>
+            <joint name="right_hip_pitch_backlash" pos="0 0 0" axis="0 0 1" class="backlash"/>
             <inertial pos="0.00253369 0.0390636 0.010809" mass="0.12407"
               fullinertia="0.000212363 7.93324e-05 0.000225619 2.68706e-05 3.9656e-06 -2.17407e-05"/>
             <!-- Part right_cache -->
@@ -368,6 +376,7 @@
               quat="1.32068e-16 1 -1.10334e-26 3.55346e-22">
               <!-- Joint from knee_and_ankle_assembly_3 to knee_and_ankle_assembly_4 -->
               <joint name="right_knee" type="hinge" range="-1.5707963267948966 1.5707963267948966" class="sts3215"/>
+              <joint name="right_knee_backlash" pos="0 0 0" axis="0 0 1" class="backlash"/>
               <inertial pos="5.01859e-06 -0.0577465 0.0181136" mass="0.07259"
                 fullinertia="4.99575e-05 1.87273e-05 4.23932e-05 1.03817e-08 2.25175e-09 8.81049e-08"/>
               <!-- Part leg_spacer_4 -->
@@ -389,6 +398,7 @@
                 quat="1 3.88578e-16 -3.33067e-16 5.55111e-16">
                 <!-- Joint from knee_and_ankle_assembly_4 to foot_assembly_2 -->
                 <joint name="right_ankle" type="hinge" range="-1.5707963267948957 1.5707963267948974" class="sts3215"/>
+                <joint name="right_ankle_backlash" pos="0 0 0" axis="0 0 1" class="backlash"/>
                 <inertial pos="0.0110718 -0.0246608 0.0190626" mass="0.07524"
                   fullinertia="1.87482e-05 6.74427e-05 6.061e-05 1.58839e-06 -6.52354e-09 5.67391e-08"/>
                 <!-- Part foot_side_2 -->
