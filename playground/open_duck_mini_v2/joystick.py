@@ -71,7 +71,7 @@ def default_config() -> config_dict.ConfigDict:
                 gravity=0.1,
                 linvel=0.1,
                 gyro=0.1,
-                accelerometer=0.01,
+                accelerometer=0.1,
             ),
         ),
         reward_config=config_dict.create(
