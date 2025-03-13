@@ -20,6 +20,7 @@ class MjInfer:
         self.model = mujoco.MjModel.from_xml_string(
             epath.Path(model_path).read_text(), assets=base.get_assets()
         )
+        print(model_path)
 
         self.standing = standing
         self.head_control_mode = self.standing
@@ -472,7 +473,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_path",
         type=str,
-        default="playground/open_duck_mini_v2/xmls/scene_mjx_flat_terrain.xml",
+        default="playground/open_duck_mini_v2/xmls/scene_flat_terrain.xml",
     )
     parser.add_argument("--standing", action="store_true", default=False)
 
