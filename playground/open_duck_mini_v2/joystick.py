@@ -39,7 +39,7 @@ from playground.common.rewards import (
     cost_stand_still,
     reward_alive,
     reward_imitation,
-    # cost_head_pos,
+    cost_head_pos,
 )
 
 # if set to false, won't require the reference data to be present and won't compute the reference motions polynoms for nothing
@@ -85,7 +85,7 @@ def default_config() -> config_dict.ConfigDict:
                 stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
-                # head_pos=-0.5,
+                head_pos=-0.3,
             ),
             tracking_sigma=0.01,  # was working at 0.01
         ),
@@ -94,7 +94,7 @@ def default_config() -> config_dict.ConfigDict:
             interval_range=[5.0, 10.0],
             magnitude_range=[0.1, 1.0],
         ),
-        lin_vel_x=[-0.15, 0.2],
+        lin_vel_x=[-0.15, 0.15],
         lin_vel_y=[-0.2, 0.2],
         ang_vel_yaw=[-1.0, 1.0],  # [-1.0, 1.0]
         neck_pitch_range=[-0.34, 1.1],
@@ -625,13 +625,13 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 self.get_actuator_joints_qpos(data.qpos),
                 self.get_actuator_joints_qvel(data.qvel),
                 self._default_actuator,
-                ignore_head=False,
+                ignore_head=True,
             ),
-            # "head_pos": cost_head_pos(
-            #     self.get_actuator_joints_qpos(data.qpos),
-            #     self.get_actuator_joints_qvel(data.qvel),
-            #     info["command"],
-            # ),
+            "head_pos": cost_head_pos(
+                self.get_actuator_joints_qpos(data.qpos),
+                self.get_actuator_joints_qvel(data.qvel),
+                info["command"],
+            ),
         }
 
         return ret
