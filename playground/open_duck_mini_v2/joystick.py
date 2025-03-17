@@ -71,7 +71,7 @@ def default_config() -> config_dict.ConfigDict:
                 gravity=0.1,
                 linvel=0.1,
                 gyro=0.1,
-                accelerometer=0.1,
+                accelerometer=0.01,
             ),
         ),
         reward_config=config_dict.create(
@@ -423,7 +423,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         state.info["push_step"] += 1
         state.info["last_last_last_act"] = state.info["last_last_act"]
         state.info["last_last_act"] = state.info["last_act"]
-        state.info["last_act"] = action_w_delay
+        state.info["last_act"] = action
         state.info["rng"], cmd_rng = jax.random.split(state.info["rng"])
         state.info["command"] = jp.where(
             state.info["step"] > 500,
