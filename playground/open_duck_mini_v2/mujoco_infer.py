@@ -331,6 +331,7 @@ class MjInfer:
     ):
         gyro = self.get_gyro(data)
         accelerometer = self.get_accelerometer(data)
+        accelerometer[0] += 1.3
 
         gravity = self.get_gravity(data)
         joint_angles = self.get_actuator_joints_qpos(data.qpos)

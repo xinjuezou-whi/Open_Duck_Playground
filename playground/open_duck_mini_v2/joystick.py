@@ -469,6 +469,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         )
 
         accelerometer = self.get_accelerometer(data)
+        accelerometer[0] += 1.3 # TODO testing
+
         info["rng"], noise_rng = jax.random.split(info["rng"])
         noisy_accelerometer = (
             accelerometer
