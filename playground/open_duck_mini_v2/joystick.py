@@ -58,19 +58,19 @@ def default_config() -> config_dict.ConfigDict:
         history_len=0,
         soft_joint_pos_limit_factor=0.95,
         noise_config=config_dict.create(
-            level=0.0,  # Set to 0.0 to disable noise.
+            level=1.0,  # Set to 0.0 to disable noise.
             action_min_delay=0,  # env steps
             action_max_delay=3,  # env steps
             imu_min_delay=0,  # env steps
             imu_max_delay=3,  # env steps
             scales=config_dict.create(
-                hip_pos=0.03,  # rad, for each hip joint
+                hip_pos=0.05,  # rad, for each hip joint # was 0.03
                 knee_pos=0.05,  # rad, for each knee joint
-                ankle_pos=0.08,  # rad, for each ankle joint
+                ankle_pos=0.05,  # rad, for each ankle joint # was 0.08
                 joint_vel=2.5,  # rad/s # Was 1.5
                 gravity=0.1,
                 linvel=0.1,
-                gyro=0.1,
+                gyro=0.05,
                 accelerometer=0.01,
             ),
         ),
