@@ -345,10 +345,10 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 motor_targets_smooth + max_motor_velocity * dt,
             )
 
-            action = motor_targets_smooth
+            # action = motor_targets_smooth
 
             # Apply control input and advance simulation
-            data = data.replace(ctrl=action)
+            data = data.replace(ctrl=motor_targets_smooth)
             data = mjx.step(model, data)
 
             # Return all the same structure as the input carry
