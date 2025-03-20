@@ -57,6 +57,7 @@ def default_config() -> config_dict.ConfigDict:
         dof_vel_scale=0.05,
         history_len=0,
         soft_joint_pos_limit_factor=0.95,
+        max_motor_velocity=5.24,  # rad/s
         noise_config=config_dict.create(
             level=1.0,  # Set to 0.0 to disable noise.
             action_min_delay=0,  # env steps
@@ -201,6 +202,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         qpos_noise_scale[ankle_ids] = self._config.noise_config.scales.ankle_pos
         # qpos_noise_scale[faa_ids] = self._config.noise_config.scales.faa_pos
         self._qpos_noise_scale = jp.array(qpos_noise_scale)
+
+        self.motor_targets_smooth = jp.zeros_like(self._default_actuator)
 
         # self.action_filter = LowPassActionFilter(
         #     1 / self._config.ctrl_dt, cutoff_frequency=37.5
@@ -390,6 +393,17 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         motor_targets = (
             self._default_actuator + action_w_delay * self._config.action_scale
         )
+
+        # velocity limit
+        self.motor_targets_smooth = jp.clip(
+            self.motor_targets_smooth,
+            motor_targets - self._config.max_motor_velocity * self.dt,
+            motor_targets + self._config.max_motor_velocity * self.dt,
+        )
+
+        motor_targets = self.motor_targets_smooth
+            
+
         data = mjx_env.step(self.mjx_model, state.data, motor_targets, self.n_substeps)
         state.info["motor_targets"] = motor_targets
 
