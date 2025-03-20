@@ -82,7 +82,7 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
 
         # Add mass to torso: +U(-0.2, 0.2).
         rng, key = jax.random.split(rng)
-        dmass = jax.random.uniform(key, minval=100.0, maxval=110.0)
+        dmass = jax.random.uniform(key, minval=-0.2, maxval=0.2)
         body_mass = body_mass.at[TORSO_BODY_ID].set(body_mass[TORSO_BODY_ID] + dmass)
 
         # Jitter qpos0: +U(-0.05, 0.05).
