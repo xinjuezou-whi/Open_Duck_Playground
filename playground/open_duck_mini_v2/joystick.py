@@ -58,7 +58,7 @@ def default_config() -> config_dict.ConfigDict:
         history_len=0,
         soft_joint_pos_limit_factor=0.95,
         noise_config=config_dict.create(
-            level=1.0,  # Set to 0.0 to disable noise.
+            level=0.0,  # Set to 0.0 to disable noise.
             action_min_delay=0,  # env steps
             action_max_delay=3,  # env steps
             imu_min_delay=0,  # env steps
