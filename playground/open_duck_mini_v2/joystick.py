@@ -340,9 +340,9 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
             # Velocity limit
             motor_targets_smooth = jp.clip(
-                motor_targets_smooth,
-                action - max_motor_velocity * dt,
-                action + max_motor_velocity * dt,
+                action,
+                motor_targets_smooth - max_motor_velocity * dt,
+                motor_targets_smooth + max_motor_velocity * dt,
             )
 
             action = motor_targets_smooth

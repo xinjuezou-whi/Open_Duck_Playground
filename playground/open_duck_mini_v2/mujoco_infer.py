@@ -9,6 +9,7 @@ from etils import epath
 from playground.common.onnx_infer import OnnxInfer
 from playground.common.poly_reference_motion_numpy import PolyReferenceMotion
 from playground.common.utils import LowPassActionFilter
+
 # from playground.open_duck_mini_v2 import constants
 from playground.open_duck_mini_v2 import base
 
@@ -32,9 +33,7 @@ class MjInfer:
         self.dof_vel_scale = 0.05
         self.action_scale = 0.25
 
-        self.action_filter = LowPassActionFilter(
-            50, cutoff_frequency=37.5
-        )
+        self.action_filter = LowPassActionFilter(50, cutoff_frequency=37.5)
 
         if not self.standing:
             self.PRM = PolyReferenceMotion(reference_data)
@@ -112,7 +111,8 @@ class MjInfer:
         # self.all_joint_no_backlash_ids=[idx for idx in self.all_joint_ids if idx not in self.backlash_joint_ids]+list(range(self._floating_base_add,self._floating_base_add+7))
         self.all_joint_no_backlash_ids = [idx for idx in all_idx]
 
-        self.model.opt.timestep = 0.002
+        self.sim_dt = 0.002
+        self.model.opt.timestep = self.sim_dt
         self.data = mujoco.MjData(self.model)
         mujoco.mj_step(self.model, self.data)
 
@@ -167,6 +167,10 @@ class MjInfer:
 
         self.imitation_i = 0
         self.saved_obs = []
+
+        self.action = np.zeros(NUM_DOFS)
+        self.action_smooth = self.default_actuator.copy()
+        self.max_motor_velocity = 5.24  # rad/s
 
         print(f"joint names: {self.joint_names}")
         print(f"actuator names: {self.actuator_names}")
@@ -421,6 +425,14 @@ class MjInfer:
 
                     step_start = time.time()
 
+                    # Velocity limit
+                    self.action_smooth = np.clip(
+                        self.action,
+                        self.action_smooth - self.max_motor_velocity * self.sim_dt,
+                        self.action_smooth + self.max_motor_velocity * self.sim_dt,
+                    )
+
+                    self.data.ctrl = self.action_smooth.copy()
                     mujoco.mj_step(self.model, self.data)
 
                     counter += 1
@@ -445,9 +457,9 @@ class MjInfer:
                         self.last_last_action = self.last_action.copy()
                         self.last_action = action.copy()
 
-                        action = self.default_actuator + action * self.action_scale
+                        self.action = self.default_actuator + action * self.action_scale
 
-                        self.data.ctrl = action.copy()
+                        # self.data.ctrl = action.copy()
 
                     viewer.sync()
 
