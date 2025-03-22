@@ -358,6 +358,7 @@ class MjInfer:
                 self.last_action,
                 self.last_last_action,
                 self.last_last_last_action,
+                self.motor_targets,
                 contacts,
                 ref if not self.standing else np.array([]),
             ]

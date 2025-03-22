@@ -616,6 +616,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 info["last_act"],  # 10
                 info["last_last_act"],  # 10
                 info["last_last_last_act"],  # 10
+                info["motor_targets"],  # 10
                 contact,  # 2
                 info["current_reference_motion"],
             ]
