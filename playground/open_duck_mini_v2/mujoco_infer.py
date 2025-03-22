@@ -126,7 +126,7 @@ class MjInfer:
 
         self.NECK_PITCH_RANGE = [-0.34, 1.1]
         self.HEAD_PITCH_RANGE = [-0.78, 0.78]
-        self.HEAD_YAW_RANGE = [-2.7, 2.7]
+        self.HEAD_YAW_RANGE = [-1.7, 1.7]
         self.HEAD_ROLL_RANGE = [-0.5, 0.5]
 
         self.last_action = np.zeros(NUM_DOFS)
@@ -462,6 +462,9 @@ class MjInfer:
 
                             self.prev_motor_targets = self.motor_targets.copy()
 
+
+                        head_targets = self.commands[3:]
+                        self.motor_targets[5:9] = head_targets
                         self.data.ctrl = self.motor_targets.copy()
 
                     viewer.sync()
