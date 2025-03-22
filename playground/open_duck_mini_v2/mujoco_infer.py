@@ -127,6 +127,7 @@ class MjInfer:
         self.HEAD_YAW_RANGE = [-2.7, 2.7]
         self.HEAD_ROLL_RANGE = [-0.5, 0.5]
 
+        self.prev_action = np.zeros(NUM_DOFS)
         self.last_action = np.zeros(NUM_DOFS)
         self.last_last_action = np.zeros(NUM_DOFS)
         self.last_last_last_action = np.zeros(NUM_DOFS)
@@ -169,7 +170,7 @@ class MjInfer:
         self.saved_obs = []
 
         self.action = np.zeros(NUM_DOFS)
-        self.action_smooth = self.default_actuator.copy()
+        # self.action_smooth = self.default_actuator.copy()
         self.max_motor_velocity = 5.24  # rad/s
 
         print(f"joint names: {self.joint_names}")
@@ -425,14 +426,15 @@ class MjInfer:
 
                     step_start = time.time()
 
-                    # Velocity limit
-                    self.action_smooth = np.clip(
-                        self.action,
-                        self.action_smooth - self.max_motor_velocity * self.sim_dt,
-                        self.action_smooth + self.max_motor_velocity * self.sim_dt,
-                    )
+                    # # Velocity limit
+                    # self.action_smooth = np.clip(
+                    #     self.action,
+                    #     self.action_smooth - self.max_motor_velocity * self.sim_dt,
+                    #     self.action_smooth + self.max_motor_velocity * self.sim_dt,
+                    # )
 
-                    self.data.ctrl = self.action_smooth.copy()
+
+                    self.data.ctrl = self.action.copy()
                     mujoco.mj_step(self.model, self.data)
 
                     counter += 1
@@ -459,6 +461,13 @@ class MjInfer:
 
                         self.action = self.default_actuator + action * self.action_scale
 
+                        self.action = np.clip(
+                            self.action,
+                            self.prev_action - self.max_motor_velocity * (self.sim_dt * self.decimation),
+                            self.prev_action + self.max_motor_velocity * (self.sim_dt * self.decimation),
+                        )
+
+                        self.prev_action = self.action.copy()
                         # self.data.ctrl = action.copy()
 
                     viewer.sync()
