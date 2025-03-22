@@ -1,19 +1,18 @@
-"""Runs training and evaluation loop for Open Duck Mini V2."""
+"""Runs training and evaluation loop for Sigmaban."""
 
 import argparse
 
 from playground.common import randomize
 from playground.common.runner import BaseRunner
-from playground.open_duck_mini_v2 import joystick, standing
+from playground.sigmaban2019 import joystick
 
 
-class OpenDuckMiniV2Runner(BaseRunner):
+class SigmabanRunner(BaseRunner):
 
     def __init__(self, args):
         super().__init__(args)
         available_envs = {
             "joystick": (joystick, joystick.Joystick),
-            "standing": (standing, standing.Standing),
         }
         if args.env not in available_envs:
             raise ValueError(f"Unknown env {args.env}")
@@ -32,7 +31,7 @@ class OpenDuckMiniV2Runner(BaseRunner):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Open Duck Mini Runner Script")
+    parser = argparse.ArgumentParser(description="Sigmaban Runner Script")
     parser.add_argument(
         "--output_dir",
         type=str,
@@ -48,7 +47,7 @@ def main() -> None:
     # )
     args = parser.parse_args()
 
-    runner = OpenDuckMiniV2Runner(args)
+    runner = SigmabanRunner(args)
 
     runner.train()
 

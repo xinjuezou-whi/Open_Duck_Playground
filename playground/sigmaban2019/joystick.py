@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Joystick task for Open Duck Mini V2. (based on Berkeley Humanoid)"""
+"""Joystick task for Sigmaban. (based on Berkeley Humanoid)"""
 
 from typing import Any, Dict, Optional, Union
 import jax
@@ -27,8 +27,7 @@ from mujoco_playground._src import mjx_env
 from mujoco_playground._src.collision import geoms_colliding
 
 from . import constants
-from . import base as open_duck_mini_v2_base
-
+from . import base as sigmaban_base
 # from playground.common.utils import LowPassActionFilter
 from playground.common.poly_reference_motion import PolyReferenceMotion
 from playground.common.rewards import (
@@ -44,7 +43,7 @@ from playground.common.rewards import (
 )
 
 # if set to false, won't require the reference data to be present and won't compute the reference motions polynoms for nothing
-USE_IMITATION_REWARD = True
+USE_IMITATION_REWARD = False
 
 
 def default_config() -> config_dict.ConfigDict:
@@ -54,12 +53,10 @@ def default_config() -> config_dict.ConfigDict:
         # episode_length=450,
         episode_length=1000,
         action_repeat=1,
-        # action_scale=0.25,
         action_scale=0.25,
         dof_vel_scale=0.05,
         history_len=0,
         soft_joint_pos_limit_factor=0.95,
-        max_motor_velocity=5.24,  # rad/s
         noise_config=config_dict.create(
             level=1.0,  # Set to 0.0 to disable noise.
             action_min_delay=0,  # env steps
@@ -108,7 +105,7 @@ def default_config() -> config_dict.ConfigDict:
     )
 
 
-class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
+class Joystick(sigmaban_base.SigmabanEnv):
     """Track a joystick command."""
 
     def __init__(
@@ -288,7 +285,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             "last_act": jp.zeros(self.mjx_model.nu),
             "last_last_act": jp.zeros(self.mjx_model.nu),
             "last_last_last_act": jp.zeros(self.mjx_model.nu),
-            "motor_targets": self._default_actuator,
+            "motor_targets": jp.zeros(self.mjx_model.nu),
             "feet_air_time": jp.zeros(2),
             "last_contact": jp.zeros(2, dtype=bool),
             "swing_peak": jp.zeros(2),
@@ -390,24 +387,10 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         data = state.data.replace(qvel=qvel)
         state = state.replace(data=data)
 
-        ####
-
         motor_targets = (
             self._default_actuator + action_w_delay * self._config.action_scale
         )
-
-        prev_motor_targets = state.info["motor_targets"]
-
-        motor_targets = jp.clip(
-            motor_targets,
-            prev_motor_targets
-            - self._config.max_motor_velocity * self.dt,  # control dt
-            prev_motor_targets
-            + self._config.max_motor_velocity * self.dt,  # control dt
-        )
-
         data = mjx_env.step(self.mjx_model, state.data, motor_targets, self.n_substeps)
-
         state.info["motor_targets"] = motor_targets
 
         contact = jp.array(
@@ -440,8 +423,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         state.info["push_step"] += 1
         state.info["last_last_last_act"] = state.info["last_last_act"]
         state.info["last_last_act"] = state.info["last_act"]
-        state.info["last_act"] = action  # was
-        # state.info["last_act"] = motor_targets  # became
+        state.info["last_act"] = action
         state.info["rng"], cmd_rng = jax.random.split(state.info["rng"])
         state.info["command"] = jp.where(
             state.info["step"] > 500,
@@ -569,7 +551,6 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 info["last_act"],  # 10
                 info["last_last_act"],  # 10
                 info["last_last_last_act"],  # 10
-                info["motor_targets"],  # 10
                 contact,  # 2
                 info["current_reference_motion"],
             ]
