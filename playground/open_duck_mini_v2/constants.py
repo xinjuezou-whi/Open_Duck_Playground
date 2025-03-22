@@ -19,9 +19,6 @@ from etils import epath
 
 
 ROOT_PATH = epath.Path(__file__).parent
-# NO_HEAD_FLAT_TERRAIN_XML = ROOT_PATH / "xmls" / "scene_flat_terrain.xml"
-# NO_HEAD_ROUGH_TERRAIN_XML = ROOT_PATH / "xmls" / "scene_rough_terrain.xml"
-# NO_HEAD_FLAT_TERRAIN_BACKLASH_XML = ROOT_PATH / "xmls" / "scene_flat_terrain_nohead_backlash.xml"
 FLAT_TERRAIN_XML = ROOT_PATH / "xmls" / "scene_flat_terrain.xml"
 ROUGH_TERRAIN_XML = ROOT_PATH / "xmls" / "scene_rough_terrain.xml"
 FLAT_TERRAIN_BACKLASH_XML = ROOT_PATH / "xmls" / "scene_flat_terrain_backlash.xml"
@@ -30,9 +27,6 @@ ROUGH_TERRAIN_BACKLASH_XML = ROOT_PATH / "xmls" / "scene_rough_terrain_backlash.
 
 def task_to_xml(task_name: str) -> epath.Path:
     return {
-        # "no_head_flat_terrain": NO_HEAD_FLAT_TERRAIN_XML,
-        # "no_head_rough_terrain": NO_HEAD_ROUGH_TERRAIN_XML,
-        # "no_head_flat_terrain_backlash": NO_HEAD_FLAT_TERRAIN_BACKLASH_XML,
         "flat_terrain": FLAT_TERRAIN_XML,
         "rough_terrain": ROUGH_TERRAIN_XML,
         "flat_terrain_backlash": FLAT_TERRAIN_BACKLASH_XML,
