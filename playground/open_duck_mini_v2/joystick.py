@@ -205,8 +205,6 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # qpos_noise_scale[faa_ids] = self._config.noise_config.scales.faa_pos
         self._qpos_noise_scale = jp.array(qpos_noise_scale)
 
-        # self.motor_targets_smooth = self._default_actuator
-
         # self.action_filter = LowPassActionFilter(
         #     1 / self._config.ctrl_dt, cutoff_frequency=37.5
         # )
@@ -327,50 +325,6 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         reward, done = jp.zeros(2)
         return mjx_env.State(data, obs, reward, done, metrics, info)
 
-    # def my_mjx_step(
-    #     self,
-    #     model: mjx.Model,
-    #     data: mjx.Data,
-    #     action: jax.Array,
-    #     n_substeps: int = 1,
-    # ) -> tuple[mjx.Data, jax.Array]:
-
-    #     def single_step(carry, _):
-    #         # Unpack the carry
-    #         data, action, max_motor_velocity, motor_targets_smooth, dt = carry
-
-    #         # Velocity limit
-    #         motor_targets_smooth = jp.clip(
-    #             action,
-    #             motor_targets_smooth - max_motor_velocity * dt,
-    #             motor_targets_smooth + max_motor_velocity * dt,
-    #         )
-
-    #         # action = motor_targets_smooth
-
-    #         # Apply control input and advance simulation
-    #         data = data.replace(ctrl=motor_targets_smooth)
-    #         data = mjx.step(model, data)
-
-    #         # Return all the same structure as the input carry
-    #         return (data, action, max_motor_velocity, motor_targets_smooth, dt), None
-
-    #     # Run scan with the corrected carry structure
-    #     (final_data, _, _, final_motor_targets_smooth, _), _ = jax.lax.scan(
-    #         single_step,
-    #         (
-    #             data,
-    #             action,
-    #             self._config.max_motor_velocity,
-    #             self.motor_targets_smooth,
-    #             self.dt,
-    #         ),
-    #         None,
-    #         length=n_substeps,
-    #     )
-
-    #     return final_data, final_motor_targets_smooth
-
     def step(self, state: mjx_env.State, action: jax.Array) -> mjx_env.State:
 
         if USE_IMITATION_REWARD:
@@ -453,9 +407,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         )
 
         data = mjx_env.step(self.mjx_model, state.data, motor_targets, self.n_substeps)
-        # data, self.motor_targets_smooth = self.my_mjx_step(
-        #     self.mjx_model, data, motor_targets, self.n_substeps
-        # )
+
         state.info["motor_targets"] = motor_targets
 
         contact = jp.array(

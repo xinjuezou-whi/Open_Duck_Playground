@@ -170,8 +170,6 @@ class MjInfer:
         self.imitation_i = 0
         self.saved_obs = []
 
-        # self.action = np.zeros(NUM_DOFS)
-        # self.action_smooth = self.default_actuator.copy()
         self.max_motor_velocity = 5.24  # rad/s
 
         print(f"joint names: {self.joint_names}")
@@ -427,15 +425,6 @@ class MjInfer:
 
                     step_start = time.time()
 
-                    # # Velocity limit
-                    # self.action_smooth = np.clip(
-                    #     self.action,
-                    #     self.action_smooth - self.max_motor_velocity * self.sim_dt,
-                    #     self.action_smooth + self.max_motor_velocity * self.sim_dt,
-                    # )
-
-
-                    # self.data.ctrl = self.action.copy()
                     mujoco.mj_step(self.model, self.data)
 
                     counter += 1
