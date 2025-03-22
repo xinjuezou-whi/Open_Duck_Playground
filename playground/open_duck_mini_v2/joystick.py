@@ -435,6 +435,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         data = state.data.replace(qvel=qvel)
         state = state.replace(data=data)
 
+        ####
+
         motor_targets = (
             self._default_actuator + action_w_delay * self._config.action_scale
         )
@@ -443,8 +445,10 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
 
         motor_targets = jp.clip(
             motor_targets,
-            prev_motor_targets - self._config.max_motor_velocity * self.dt,  # control dt
-            prev_motor_targets + self._config.max_motor_velocity * self.dt,  # control dt
+            prev_motor_targets
+            - self._config.max_motor_velocity * self.dt,  # control dt
+            prev_motor_targets
+            + self._config.max_motor_velocity * self.dt,  # control dt
         )
 
         data = mjx_env.step(self.mjx_model, state.data, motor_targets, self.n_substeps)
@@ -483,7 +487,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         state.info["push_step"] += 1
         state.info["last_last_last_act"] = state.info["last_last_act"]
         state.info["last_last_act"] = state.info["last_act"]
-        state.info["last_act"] = motor_targets
+        state.info["last_act"] = action  # was
+        # state.info["last_act"] = motor_targets  # became
         state.info["rng"], cmd_rng = jax.random.split(state.info["rng"])
         state.info["command"] = jp.where(
             state.info["step"] > 500,

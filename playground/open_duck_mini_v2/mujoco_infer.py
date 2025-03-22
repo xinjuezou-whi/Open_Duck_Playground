@@ -139,7 +139,8 @@ class MjInfer:
         self.default_actuator = self.model.keyframe(
             "home"
         ).ctrl  # ctrl of all the actual joints (no floating base and no backlash)
-        self.prev_action = self.default_actuator
+        self.motor_targets = self.default_actuator
+        self.prev_motor_targets = self.default_actuator
 
         # orientation
         # data.qpos[3 : 3 + 4] = [1, 0, 0.0, 0]
@@ -169,7 +170,7 @@ class MjInfer:
         self.imitation_i = 0
         self.saved_obs = []
 
-        self.action = np.zeros(NUM_DOFS)
+        # self.action = np.zeros(NUM_DOFS)
         # self.action_smooth = self.default_actuator.copy()
         self.max_motor_velocity = 5.24  # rad/s
 
@@ -433,7 +434,7 @@ class MjInfer:
                     # )
 
 
-                    self.data.ctrl = self.action.copy()
+                    # self.data.ctrl = self.action.copy()
                     mujoco.mj_step(self.model, self.data)
 
                     counter += 1
@@ -454,26 +455,20 @@ class MjInfer:
                         # self.action_filter.push(action)
                         # action = self.action_filter.get_filtered_action()
 
-                        # Was
-                        # self.last_last_last_action = self.last_last_action.copy()
-                        # self.last_last_action = self.last_action.copy()
-                        # self.last_action = action.copy()
-
-                        self.action = np.clip(
-                            self.action,
-                            self.prev_action - self.max_motor_velocity * (self.sim_dt * self.decimation),
-                            self.prev_action + self.max_motor_velocity * (self.sim_dt * self.decimation),
-                        )
-
-                        # Became
                         self.last_last_last_action = self.last_last_action.copy()
                         self.last_last_action = self.last_action.copy()
-                        self.last_action = self.action.copy()
+                        self.last_action = action.copy()
 
-                        self.action = self.default_actuator + action * self.action_scale
+                        self.motor_targets = self.default_actuator + action * self.action_scale
+                        self.motor_targets = np.clip(
+                            self.motor_targets,
+                            self.prev_motor_targets - self.max_motor_velocity * (self.sim_dt * self.decimation),
+                            self.prev_motor_targets + self.max_motor_velocity * (self.sim_dt * self.decimation),
+                        )
 
-                        self.prev_action = self.action.copy()
-                        # self.data.ctrl = action.copy()
+                        self.prev_motor_targets = self.motor_targets.copy()
+
+                        self.data.ctrl = self.motor_targets.copy()
 
                     viewer.sync()
 
