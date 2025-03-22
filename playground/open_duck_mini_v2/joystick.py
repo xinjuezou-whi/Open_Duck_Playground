@@ -204,7 +204,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # qpos_noise_scale[faa_ids] = self._config.noise_config.scales.faa_pos
         self._qpos_noise_scale = jp.array(qpos_noise_scale)
 
-        self.motor_targets_smooth = self._default_actuator
+        # self.motor_targets_smooth = self._default_actuator
 
         # self.action_filter = LowPassActionFilter(
         #     1 / self._config.ctrl_dt, cutoff_frequency=37.5
@@ -273,7 +273,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             minval=self._config.push_config.interval_range[0],
             maxval=self._config.push_config.interval_range[1],
         )
-        push_interval_steps = jp.round(push_interval / self.sim_dt).astype(jp.int32)
+        push_interval_steps = jp.round(push_interval / self.dt).astype(jp.int32)
 
         if USE_IMITATION_REWARD:
             current_reference_motion = self.PRM.get_reference_motion(
