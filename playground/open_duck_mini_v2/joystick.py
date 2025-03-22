@@ -45,6 +45,7 @@ from playground.common.rewards import (
 
 # if set to false, won't require the reference data to be present and won't compute the reference motions polynoms for nothing
 USE_IMITATION_REWARD = True
+USE_MOTOR_SPEED_LIMITS = True
 
 
 def default_config() -> config_dict.ConfigDict:
@@ -396,15 +397,16 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             self._default_actuator + action_w_delay * self._config.action_scale
         )
 
-        prev_motor_targets = state.info["motor_targets"]
+        if USE_MOTOR_SPEED_LIMITS:
+            prev_motor_targets = state.info["motor_targets"]
 
-        motor_targets = jp.clip(
-            motor_targets,
-            prev_motor_targets
-            - self._config.max_motor_velocity * self.dt,  # control dt
-            prev_motor_targets
-            + self._config.max_motor_velocity * self.dt,  # control dt
-        )
+            motor_targets = jp.clip(
+                motor_targets,
+                prev_motor_targets
+                - self._config.max_motor_velocity * self.dt,  # control dt
+                prev_motor_targets
+                + self._config.max_motor_velocity * self.dt,  # control dt
+            )
 
         data = mjx_env.step(self.mjx_model, state.data, motor_targets, self.n_substeps)
 

@@ -13,6 +13,8 @@ from playground.common.utils import LowPassActionFilter
 # from playground.open_duck_mini_v2 import constants
 from playground.open_duck_mini_v2 import base
 
+USE_MOTOR_SPEED_LIMITS = True
+
 
 class MjInfer:
     def __init__(
@@ -450,13 +452,15 @@ class MjInfer:
                         self.last_action = action.copy()
 
                         self.motor_targets = self.default_actuator + action * self.action_scale
-                        self.motor_targets = np.clip(
-                            self.motor_targets,
-                            self.prev_motor_targets - self.max_motor_velocity * (self.sim_dt * self.decimation),
-                            self.prev_motor_targets + self.max_motor_velocity * (self.sim_dt * self.decimation),
-                        )
 
-                        self.prev_motor_targets = self.motor_targets.copy()
+                        if USE_MOTOR_SPEED_LIMITS:
+                            self.motor_targets = np.clip(
+                                self.motor_targets,
+                                self.prev_motor_targets - self.max_motor_velocity * (self.sim_dt * self.decimation),
+                                self.prev_motor_targets + self.max_motor_velocity * (self.sim_dt * self.decimation),
+                            )
+
+                            self.prev_motor_targets = self.motor_targets.copy()
 
                         self.data.ctrl = self.motor_targets.copy()
 
