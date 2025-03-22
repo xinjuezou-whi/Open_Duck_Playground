@@ -9,9 +9,8 @@ from etils import epath
 from playground.common.onnx_infer import OnnxInfer
 from playground.common.poly_reference_motion_numpy import PolyReferenceMotion
 from playground.common.utils import LowPassActionFilter
-
 # from playground.open_duck_mini_v2 import constants
-from playground.open_duck_mini_v2 import base
+from playground.sigmaban2019 import base
 
 
 class MjInfer:
@@ -33,7 +32,9 @@ class MjInfer:
         self.dof_vel_scale = 0.05
         self.action_scale = 0.25
 
-        self.action_filter = LowPassActionFilter(50, cutoff_frequency=37.5)
+        self.action_filter = LowPassActionFilter(
+            50, cutoff_frequency=37.5
+        )
 
         if not self.standing:
             self.PRM = PolyReferenceMotion(reference_data)
@@ -111,8 +112,7 @@ class MjInfer:
         # self.all_joint_no_backlash_ids=[idx for idx in self.all_joint_ids if idx not in self.backlash_joint_ids]+list(range(self._floating_base_add,self._floating_base_add+7))
         self.all_joint_no_backlash_ids = [idx for idx in all_idx]
 
-        self.sim_dt = 0.002
-        self.model.opt.timestep = self.sim_dt
+        self.model.opt.timestep = 0.002
         self.data = mujoco.MjData(self.model)
         mujoco.mj_step(self.model, self.data)
 
@@ -139,7 +139,6 @@ class MjInfer:
         self.default_actuator = self.model.keyframe(
             "home"
         ).ctrl  # ctrl of all the actual joints (no floating base and no backlash)
-        self.prev_action = self.default_actuator
 
         # orientation
         # data.qpos[3 : 3 + 4] = [1, 0, 0.0, 0]
@@ -168,10 +167,6 @@ class MjInfer:
 
         self.imitation_i = 0
         self.saved_obs = []
-
-        self.action = np.zeros(NUM_DOFS)
-        # self.action_smooth = self.default_actuator.copy()
-        self.max_motor_velocity = 5.24  # rad/s
 
         print(f"joint names: {self.joint_names}")
         print(f"actuator names: {self.actuator_names}")
@@ -324,13 +319,14 @@ class MjInfer:
         return False
 
     def get_feet_contacts(self, data):
-        left_contact = self.check_contact(data, "foot_assembly", "floor")
-        right_contact = self.check_contact(data, "foot_assembly_2", "floor")
+        left_contact = self.check_contact(data, "left_foot_cleat_front_right", "floor")
+        right_contact = self.check_contact(data, "right_foot_cleat_back_left", "floor")
         return left_contact, right_contact
 
     def get_obs(
         self,
         data,
+        last_action,
         command,  # , qvel_history, qpos_error_history, gravity_history
     ):
         gyro = self.get_gyro(data)
@@ -354,7 +350,7 @@ class MjInfer:
                 command,
                 joint_angles - self.default_actuator,
                 joint_vel * self.dof_vel_scale,
-                self.last_action,
+                last_action,
                 self.last_last_action,
                 self.last_last_last_action,
                 contacts,
@@ -425,15 +421,6 @@ class MjInfer:
 
                     step_start = time.time()
 
-                    # # Velocity limit
-                    # self.action_smooth = np.clip(
-                    #     self.action,
-                    #     self.action_smooth - self.max_motor_velocity * self.sim_dt,
-                    #     self.action_smooth + self.max_motor_velocity * self.sim_dt,
-                    # )
-
-
-                    self.data.ctrl = self.action.copy()
                     mujoco.mj_step(self.model, self.data)
 
                     counter += 1
@@ -446,34 +433,22 @@ class MjInfer:
                             )
                         obs = self.get_obs(
                             self.data,
+                            self.last_action,
                             self.commands,
                         )
                         self.saved_obs.append(obs)
-                        action = self.policy.infer(obs)
+                        # action = self.policy.infer(obs)
+                        action = np.zeros(20)
 
                         # self.action_filter.push(action)
                         # action = self.action_filter.get_filtered_action()
-
-                        # Was
-                        # self.last_last_last_action = self.last_last_action.copy()
-                        # self.last_last_action = self.last_action.copy()
-                        # self.last_action = action.copy()
-
-                        self.action = np.clip(
-                            self.action,
-                            self.prev_action - self.max_motor_velocity * (self.sim_dt * self.decimation),
-                            self.prev_action + self.max_motor_velocity * (self.sim_dt * self.decimation),
-                        )
-
-                        # Became
                         self.last_last_last_action = self.last_last_action.copy()
                         self.last_last_action = self.last_action.copy()
-                        self.last_action = self.action.copy()
+                        self.last_action = action.copy()
 
-                        self.action = self.default_actuator + action * self.action_scale
+                        action = self.default_actuator + action * self.action_scale
 
-                        self.prev_action = self.action.copy()
-                        # self.data.ctrl = action.copy()
+                        self.data.ctrl = action.copy()
 
                     viewer.sync()
 
