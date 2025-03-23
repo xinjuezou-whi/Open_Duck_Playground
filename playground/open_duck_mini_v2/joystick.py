@@ -39,9 +39,10 @@ from playground.common.rewards import (
     cost_action_rate,
     cost_stand_still,
     reward_alive,
-    reward_imitation,
+    # reward_imitation,
     # cost_head_pos,
 )
+from playground.open_duck_mini_v2.custom_rewards import reward_imitation
 
 # if set to false, won't require the reference data to be present and won't compute the reference motions polynoms for nothing
 USE_IMITATION_REWARD = True
@@ -81,11 +82,11 @@ def default_config() -> config_dict.ConfigDict:
         reward_config=config_dict.create(
             scales=config_dict.create(
                 tracking_lin_vel=2.5,
-                tracking_ang_vel=4.0,
+                tracking_ang_vel=8.0,
                 # orientation=-0.5,
                 torques=-1.0e-3,
                 # action_rate=-0.375,  # was -1.5
-                action_rate=-0.3,  # was -1.5
+                action_rate=-0.2,  # was -1.5
                 stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
@@ -103,7 +104,7 @@ def default_config() -> config_dict.ConfigDict:
         ang_vel_yaw=[-1.0, 1.0],  # [-1.0, 1.0]
         neck_pitch_range=[-0.34, 1.1],
         head_pitch_range=[-0.78, 0.78],
-        head_yaw_range=[-2.7, 2.7],
+        head_yaw_range=[-1.7, 1.7],
         head_roll_range=[-0.5, 0.5],
         head_range_factor=1.0,  # to make it easier
     )
@@ -408,6 +409,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 + self._config.max_motor_velocity * self.dt,  # control dt
             )
 
+        motor_targets.at[5:9].set(state.info["command"][3:])  # head joints
         data = mjx_env.step(self.mjx_model, state.data, motor_targets, self.n_substeps)
 
         state.info["motor_targets"] = motor_targets
