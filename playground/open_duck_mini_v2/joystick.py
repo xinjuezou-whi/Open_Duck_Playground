@@ -34,12 +34,10 @@ from playground.common.poly_reference_motion import PolyReferenceMotion
 from playground.common.rewards import (
     reward_tracking_lin_vel,
     reward_tracking_ang_vel,
-    # cost_orientation,
     cost_torques,
     cost_action_rate,
     cost_stand_still,
     reward_alive,
-    # cost_head_pos,
 )
 from playground.open_duck_mini_v2.custom_rewards import reward_imitation
 
@@ -52,10 +50,8 @@ def default_config() -> config_dict.ConfigDict:
     return config_dict.create(
         ctrl_dt=0.02,
         sim_dt=0.002,
-        # episode_length=450,
         episode_length=1000,
         action_repeat=1,
-        # action_scale=0.25,
         action_scale=0.25,
         dof_vel_scale=0.05,
         history_len=0,
@@ -82,14 +78,11 @@ def default_config() -> config_dict.ConfigDict:
             scales=config_dict.create(
                 tracking_lin_vel=2.5,
                 tracking_ang_vel=8.0,
-                # orientation=-0.5,
                 torques=-1.0e-3,
-                # action_rate=-0.375,  # was -1.5
                 action_rate=-0.2,  # was -1.5
                 stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
-                # head_pos=-1.0,
             ),
             tracking_sigma=0.01,  # was working at 0.01
         ),
@@ -652,11 +645,6 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 self._default_actuator,
                 ignore_head=False,
             ),
-            # "head_pos": cost_head_pos(
-            #     self.get_actuator_joints_qpos(data.qpos),
-            #     self.get_actuator_joints_qvel(data.qvel),
-            #     info["command"],
-            # ),
         }
 
         return ret
