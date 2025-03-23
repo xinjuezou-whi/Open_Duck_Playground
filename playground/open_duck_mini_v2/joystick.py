@@ -39,9 +39,10 @@ from playground.common.rewards import (
     cost_action_rate,
     cost_stand_still,
     reward_alive,
-    reward_imitation,
+    # reward_imitation,
     # cost_head_pos,
 )
+from playground.open_duck_mini_v2.custom_rewards import reward_imitation
 
 # if set to false, won't require the reference data to be present and won't compute the reference motions polynoms for nothing
 USE_IMITATION_REWARD = True
@@ -62,7 +63,7 @@ def default_config() -> config_dict.ConfigDict:
         soft_joint_pos_limit_factor=0.95,
         max_motor_velocity=5.24,  # rad/s
         noise_config=config_dict.create(
-            level=1.0,  # Set to 0.0 to disable noise.
+            level=0.0,  # Set to 0.0 to disable noise.
             action_min_delay=0,  # env steps
             action_max_delay=3,  # env steps
             imu_min_delay=0,  # env steps
@@ -80,14 +81,14 @@ def default_config() -> config_dict.ConfigDict:
         ),
         reward_config=config_dict.create(
             scales=config_dict.create(
-                tracking_lin_vel=2.5,
+                tracking_lin_vel=3.5,
                 tracking_ang_vel=8.0,
                 # orientation=-0.5,
                 torques=-1.0e-3,
                 # action_rate=-0.375,  # was -1.5
                 action_rate=-0.2,  # was -1.5
-                stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
-                alive=20.0,
+                stand_still=-0.5,  # was -1.0 TODO try to relax this a bit ?
+                alive=30.0,
                 imitation=1.0,
                 # head_pos=-1.0,
             ),
@@ -96,7 +97,7 @@ def default_config() -> config_dict.ConfigDict:
         push_config=config_dict.create(
             enable=True,
             interval_range=[5.0, 10.0],
-            magnitude_range=[0.1, 1.0],
+            magnitude_range=[0.1, 2.0],
         ),
         lin_vel_x=[-0.15, 0.15],
         lin_vel_y=[-0.2, 0.2],
