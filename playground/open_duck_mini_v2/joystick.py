@@ -39,7 +39,6 @@ from playground.common.rewards import (
     cost_action_rate,
     cost_stand_still,
     reward_alive,
-    # reward_imitation,
     # cost_head_pos,
 )
 from playground.open_duck_mini_v2.custom_rewards import reward_imitation
