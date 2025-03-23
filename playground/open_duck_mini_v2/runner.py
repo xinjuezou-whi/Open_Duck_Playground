@@ -28,6 +28,7 @@ class OpenDuckMiniV2Runner(BaseRunner):
         self.obs_size = int(
             self.env.observation_size["state"][0]
         )  # 0: state 1: privileged_state
+        self.restore_checkpoint_path = args.restore_checkpoint_path
         print(f"Observation size: {self.obs_size}")
 
 
@@ -43,6 +44,12 @@ def main() -> None:
     parser.add_argument("--num_timesteps", type=int, default=150000000)
     parser.add_argument("--env", type=str, default="joystick", help="env")
     parser.add_argument("--task", type=str, default="flat_terrain", help="Task to run")
+    parser.add_argument(
+        "--restore_checkpoint_path",
+        type=str,
+        default=None,
+        help="Resume training from this checkpoint",
+    )
     # parser.add_argument(
     #     "--debug", action="store_true", help="Run in debug mode with minimal parameters"
     # )
