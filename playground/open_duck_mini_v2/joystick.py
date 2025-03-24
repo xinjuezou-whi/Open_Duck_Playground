@@ -64,23 +64,23 @@ def default_config() -> config_dict.ConfigDict:
             imu_min_delay=0,  # env steps
             imu_max_delay=3,  # env steps
             scales=config_dict.create(
-                hip_pos=0.05,  # rad, for each hip joint # was 0.03
+                hip_pos=0.03,  # rad, for each hip joint
                 knee_pos=0.05,  # rad, for each knee joint
-                ankle_pos=0.05,  # rad, for each ankle joint # was 0.08
+                ankle_pos=0.08,  # rad, for each ankle joint
                 joint_vel=2.5,  # rad/s # Was 1.5
                 gravity=0.1,
                 linvel=0.1,
-                gyro=0.05,
-                accelerometer=0.01,
+                gyro=0.1,
+                accelerometer=0.05,
             ),
         ),
         reward_config=config_dict.create(
             scales=config_dict.create(
                 tracking_lin_vel=2.5,
-                tracking_ang_vel=8.0,
+                tracking_ang_vel=6.0,
                 torques=-1.0e-3,
                 action_rate=-0.5,  # was -1.5
-                stand_still=-0.7,  # was -1.0 TODO try to relax this a bit ?
+                stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
             ),
