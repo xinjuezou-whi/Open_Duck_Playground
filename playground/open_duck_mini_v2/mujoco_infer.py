@@ -344,8 +344,8 @@ class MjInfer:
 
         contacts = self.get_feet_contacts(data)
 
-        if not self.standing:
-            ref = self.PRM.get_reference_motion(*command[:3], self.imitation_i)
+        # if not self.standing:
+            # ref = self.PRM.get_reference_motion(*command[:3], self.imitation_i)
 
         obs = np.concatenate(
             [
@@ -360,7 +360,8 @@ class MjInfer:
                 self.last_last_last_action,
                 self.motor_targets,
                 contacts,
-                ref if not self.standing else np.array([]),
+                # ref if not self.standing else np.array([]),
+                [self.imitation_i]
             ]
         )
 

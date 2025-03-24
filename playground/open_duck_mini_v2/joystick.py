@@ -80,7 +80,7 @@ def default_config() -> config_dict.ConfigDict:
                 tracking_ang_vel=6.0,
                 torques=-1.0e-3,
                 action_rate=-0.5,  # was -1.5
-                stand_still=-0.3,  # was -1.0 TODO try to relax this a bit ?
+                stand_still=-1.0,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
             ),
@@ -96,7 +96,7 @@ def default_config() -> config_dict.ConfigDict:
         ang_vel_yaw=[-1.0, 1.0],  # [-1.0, 1.0]
         neck_pitch_range=[-0.34, 1.1],
         head_pitch_range=[-0.78, 0.78],
-        head_yaw_range=[-1.7, 1.7],
+        head_yaw_range=[-1.5, 1.5],
         head_roll_range=[-0.5, 0.5],
         head_range_factor=1.0,  # to make it easier
     )
