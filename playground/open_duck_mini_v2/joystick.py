@@ -250,7 +250,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
         # )
 
         qvel = self.set_floating_base_qvel(
-            jax.random.uniform(key, (6,), minval=-0.5, maxval=0.5), qvel
+            jax.random.uniform(key, (6,), minval=-0.05, maxval=0.05), qvel
         )
         # print(f'DEBUG3 base qvel: {qvel}')
         ctrl = self.get_actuator_joints_qpos(qpos)
