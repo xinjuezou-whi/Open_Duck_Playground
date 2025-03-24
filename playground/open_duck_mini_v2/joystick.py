@@ -329,8 +329,16 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             )  # not critical, is already moduloed in get_reference_motion
             state.info["imitation_phase"] = jp.array(
                 [
-                    jp.cos(state.info["imitation_i"] / self.PRM.nb_steps_in_period),
-                    jp.sin(state.info["imitation_i"] / self.PRM.nb_steps_in_period),
+                    jp.cos(
+                        (state.info["imitation_i"] / self.PRM.nb_steps_in_period)
+                        * 2
+                        * jp.pi
+                    ),
+                    jp.sin(
+                        (state.info["imitation_i"] / self.PRM.nb_steps_in_period)
+                        * 2
+                        * jp.pi
+                    ),
                 ]
             )
         else:
