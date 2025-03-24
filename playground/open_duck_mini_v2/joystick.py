@@ -80,7 +80,7 @@ def default_config() -> config_dict.ConfigDict:
                 tracking_ang_vel=6.0,
                 torques=-1.0e-3,
                 action_rate=-0.5,  # was -1.5
-                stand_still=-1.0,  # was -1.0 TODO try to relax this a bit ?
+                stand_still=-0.5,  # was -1.0 TODO try to relax this a bit ?
                 alive=20.0,
                 imitation=1.0,
             ),
@@ -298,6 +298,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             # imitation related
             "imitation_i": 0,
             "current_reference_motion": current_reference_motion,
+            "imitation_phase": jp.zeros(2),
         }
 
         metrics = {}
@@ -326,6 +327,10 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
             state.info["imitation_i"] = (
                 state.info["imitation_i"] % self.PRM.nb_steps_in_period
             )  # not critical, is already moduloed in get_reference_motion
+            state.info["imitation_phase"] = jp.array(
+                jp.cos(state.info["imitation_i"] / self.PRM.nb_steps_in_period),
+                jp.sin(state.info["imitation_i"] / self.PRM.nb_steps_in_period),
+            )
         else:
             state.info["imitation_i"] = 0
 
@@ -401,7 +406,7 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 + self._config.max_motor_velocity * self.dt,  # control dt
             )
 
-        motor_targets.at[5:9].set(state.info["command"][3:])  # head joints
+        # motor_targets.at[5:9].set(state.info["command"][3:])  # head joints
         data = mjx_env.step(self.mjx_model, state.data, motor_targets, self.n_substeps)
 
         state.info["motor_targets"] = motor_targets
@@ -568,7 +573,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 info["motor_targets"],  # 10
                 contact,  # 2
                 # info["current_reference_motion"],
-                info["imitation_i"],
+                # info["imitation_i"],
+                info["imitation_phase"],
             ]
         )
 
@@ -593,6 +599,8 @@ class Joystick(open_duck_mini_v2_base.OpenDuckMiniV2Env):
                 feet_vel,  # 4*3
                 info["feet_air_time"],  # 2
                 info["current_reference_motion"],
+                info["imitation_i"],
+                info["imitation_phase"]
             ]
         )
 
