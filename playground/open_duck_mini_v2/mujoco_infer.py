@@ -442,8 +442,8 @@ class MjInfer:
                             )
                             self.imitation_phase = np.array(
                                 [
-                                    np.cos(self.imitation_i / self.PRM * 2 * np.pi),
-                                    np.sin(self.imitation_i / self.PRM * 2 * np.pi),
+                                    np.cos(self.imitation_i / self.PRM.nb_steps_in_period * 2 * np.pi),
+                                    np.sin(self.imitation_i / self.PRM.nb_steps_in_period * 2 * np.pi),
                                 ]
                             )
                         obs = self.get_obs(
